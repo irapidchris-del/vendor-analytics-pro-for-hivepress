@@ -56,8 +56,9 @@ final class Vendor_Analytics extends Controller {
 
 	/**
 	 * Redirects the listing analytics page when access requirements are not
-	 * met. Mirrors the official Statistics extension's verified checks: the
-	 * base listing_edit_page route resolves the listing into request context.
+	 * met. Base route callbacks do not run for child routes, so the listing
+	 * must be resolved from the URL parameter here (the same pattern core
+	 * uses for listing_renew_page, another listing_edit_page child route).
 	 *
 	 * @return mixed
 	 */
@@ -68,12 +69,15 @@ final class Vendor_Analytics extends Controller {
 			return hivepress()->router->get_return_url( 'user_login_page' );
 		}
 
-		// Check listing (ownership via the verified user field).
-		$listing = hivepress()->request->get_context( 'listing' );
+		// Get listing (ownership via the user field).
+		$listing = Models\Listing::query()->get_by_id( hivepress()->request->get_param( 'listing_id' ) );
 
 		if ( empty( $listing ) || get_current_user_id() !== $listing->get_user__id() || $listing->get_status() !== 'publish' ) {
 			return hivepress()->router->get_url( 'listings_edit_page' );
 		}
+
+		// Set request context.
+		hivepress()->request->set_context( 'listing', $listing );
 
 		return false;
 	}

@@ -6,6 +6,8 @@
  * Author: ChrisB @ HivePress Community
  * Author URI: https://community.hivepress.io/u/chrisb
  * Requires Plugins: hivepress
+ * Requires at least: 6.0
+ * Requires PHP: 7.4
  * License: GPLv2 or later
  * Text Domain: hivepress-vendor-analytics
  *
@@ -40,16 +42,24 @@ define( 'HPVA_VERSION', '1.3.0' );
 define( 'HPVA_DB_VERSION', '1' );
 define( 'HPVA_FILE', __FILE__ );
 
-// Register this plugin directory with HivePress so core autoloads our
-// controller, template and block classes (verified extension pattern).
+// Register this plugin with HivePress so core autoloads our controller,
+// template and block classes. The explicit array form is required: with a
+// bare directory, core expects the main file to be named after the plugin
+// folder (basename( $dir ) . '.php'), so registration would silently fail
+// whenever the installed folder name differs from the main file name.
 add_filter(
 	'hivepress/v1/extensions',
 	/**
-	 * @param array<int, string> $extensions Extension directories.
-	 * @return array<int, string>
+	 * @param array<int|string, mixed> $extensions Extension directories or details.
+	 * @return array<int|string, mixed>
 	 */
 	function ( $extensions ) {
-		$extensions[] = __DIR__;
+		$extensions['vendor_analytics'] = [
+			'name'    => 'Vendor Analytics Pro',
+			'version' => HPVA_VERSION,
+			'path'    => __DIR__,
+			'url'     => rtrim( plugin_dir_url( __FILE__ ), '/' ),
+		];
 
 		return $extensions;
 	}
@@ -410,7 +420,7 @@ function hpva_record( $metric, $vendor_id, $listing_id = 0, $value = 1 ) {
 
 	$wpdb->query( // phpcs:ignore WordPress.DB -- custom analytics tables / source-verified hp_ schema; table names derive from $wpdb->prefix and cannot be placeholders; caching by design at the transient layer.
 		$wpdb->prepare(
-			'INSERT INTO ' . hpva_table() . ' (stat_date, metric, listing_id, vendor_id, value) // phpcs:ignore WordPress.DB -- custom analytics tables / source-verified hp_ schema; table names derive from $wpdb->prefix and cannot be placeholders; caching by design at the transient layer.
+			'INSERT INTO ' . hpva_table() . ' (stat_date, metric, listing_id, vendor_id, value)
 			 VALUES (%s, %s, %d, %d, %d)
 			 ON DUPLICATE KEY UPDATE value = value + %d',
 			current_time( 'Y-m-d' ),
@@ -441,7 +451,7 @@ function hpva_record_term( $term, $listing_id ) {
 
 	$wpdb->query( // phpcs:ignore WordPress.DB -- custom analytics tables / source-verified hp_ schema; table names derive from $wpdb->prefix and cannot be placeholders; caching by design at the transient layer.
 		$wpdb->prepare(
-			'INSERT INTO ' . hpva_terms_table() . ' (stat_date, term, listing_id, impressions) // phpcs:ignore WordPress.DB -- custom analytics tables / source-verified hp_ schema; table names derive from $wpdb->prefix and cannot be placeholders; caching by design at the transient layer.
+			'INSERT INTO ' . hpva_terms_table() . ' (stat_date, term, listing_id, impressions)
 			 VALUES (%s, %s, %d, 1)
 			 ON DUPLICATE KEY UPDATE impressions = impressions + 1',
 			current_time( 'Y-m-d' ),
@@ -746,7 +756,7 @@ function hpva_maybe_upgrade() {
  * @return void
  */
 function hpva_track_search_terms() {
-	if ( is_admin() || ! is_search() || ! hpva_get_option( 'vendor_analytics_search', true ) ) {
+	if ( is_admin() || ! is_search() || hpva_is_bot() || ! hpva_get_option( 'vendor_analytics_search', true ) ) {
 		return;
 	}
 
@@ -871,6 +881,17 @@ function hpva_register_rest() {
 }
 
 /**
+ * Checks whether the current request comes from a known crawler.
+ *
+ * @return bool
+ */
+function hpva_is_bot() {
+	$ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
+
+	return '' === $ua || preg_match( '/bot|crawl|spider|slurp|preview|facebookexternalhit|headless/i', $ua );
+}
+
+/**
  * Handles beacon tracking requests.
  *
  * @param WP_REST_Request $request Request object.
@@ -878,9 +899,7 @@ function hpva_register_rest() {
  */
 function hpva_rest_track( $request ) {
 	// Bot filter (JS beacons already exclude most crawlers; belt and braces).
-	$ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
-
-	if ( '' === $ua || preg_match( '/bot|crawl|spider|slurp|preview|facebookexternalhit|headless/i', $ua ) ) {
+	if ( hpva_is_bot() ) {
 		return new WP_REST_Response( null, 204 );
 	}
 
@@ -921,12 +940,21 @@ function hpva_rest_track( $request ) {
 	}
 
 	if ( in_array( $metric, array_merge( [ 'view' ], $click_metrics ), true ) ) {
-		$listing_post = get_post( $listing_id );
+		if ( $listing_id ) {
+			$listing_post = get_post( $listing_id );
 
-		if ( $listing_post && 'hp_listing' === $listing_post->post_type && 'publish' === $listing_post->post_status ) {
-			// Vendor is resolved server-side from the listing; the client's
-			// value is never trusted for listing metrics.
-			hpva_record( $metric, hpva_vendor_id_from_listing( $listing_id ), $listing_id );
+			if ( $listing_post && 'hp_listing' === $listing_post->post_type && 'publish' === $listing_post->post_status ) {
+				// Vendor is resolved server-side from the listing; the client's
+				// value is never trusted for listing metrics.
+				hpva_record( $metric, hpva_vendor_id_from_listing( $listing_id ), $listing_id );
+			}
+		} elseif ( $vendor_id && in_array( $metric, $click_metrics, true ) ) {
+			// Contact clicks on vendor profile pages are vendor-scoped.
+			$vendor_post = get_post( $vendor_id );
+
+			if ( $vendor_post && 'hp_vendor' === $vendor_post->post_type && 'publish' === $vendor_post->post_status ) {
+				hpva_record( $metric, $vendor_id, 0 );
+			}
 		}
 	}
 
@@ -1153,7 +1181,7 @@ function hpva_listing_breakdown( $vendor_id, $from, $to ) {
 
 	$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB -- custom analytics tables / source-verified hp_ schema; table names derive from $wpdb->prefix and cannot be placeholders; caching by design at the transient layer.
 		$wpdb->prepare(
-			'SELECT listing_id, metric, SUM(value) AS v FROM ' . hpva_table() . ' // phpcs:ignore WordPress.DB -- custom analytics tables / source-verified hp_ schema; table names derive from $wpdb->prefix and cannot be placeholders; caching by design at the transient layer.
+			'SELECT listing_id, metric, SUM(value) AS v FROM ' . hpva_table() . '
 			 WHERE vendor_id = %d AND listing_id > 0 AND stat_date BETWEEN %s AND %s
 			 GROUP BY listing_id, metric',
 			(int) $vendor_id,
@@ -1187,7 +1215,7 @@ function hpva_top_terms( $vendor_id, $from, $to, $limit = 10, $listing_id = null
 	if ( null !== $listing_id ) {
 		return $wpdb->get_results( // phpcs:ignore WordPress.DB -- custom analytics tables / source-verified hp_ schema; table names derive from $wpdb->prefix and cannot be placeholders; caching by design at the transient layer.
 			$wpdb->prepare(
-				'SELECT term, SUM(impressions) AS impressions FROM ' . hpva_terms_table() . ' // phpcs:ignore WordPress.DB -- custom analytics tables / source-verified hp_ schema; table names derive from $wpdb->prefix and cannot be placeholders; caching by design at the transient layer.
+				'SELECT term, SUM(impressions) AS impressions FROM ' . hpva_terms_table() . '
 				 WHERE listing_id = %d AND stat_date BETWEEN %s AND %s
 				 GROUP BY term ORDER BY impressions DESC LIMIT %d',
 				(int) $listing_id,
@@ -1202,7 +1230,7 @@ function hpva_top_terms( $vendor_id, $from, $to, $limit = 10, $listing_id = null
 
 	return $wpdb->get_results( // phpcs:ignore WordPress.DB -- custom analytics tables / source-verified hp_ schema; table names derive from $wpdb->prefix and cannot be placeholders; caching by design at the transient layer.
 		$wpdb->prepare(
-			"SELECT t.term, SUM(t.impressions) AS impressions FROM {$table} t // phpcs:ignore WordPress.DB -- custom analytics tables / source-verified hp_ schema; table names derive from $wpdb->prefix and cannot be placeholders; caching by design at the transient layer.
+			"SELECT t.term, SUM(t.impressions) AS impressions FROM {$table} t
 			 INNER JOIN {$wpdb->posts} p ON p.ID = t.listing_id
 			 WHERE p.post_type = 'hp_listing' AND p.post_parent = %d
 			 AND t.stat_date BETWEEN %s AND %s
@@ -1300,7 +1328,7 @@ function hpva_benchmark( $vendor_id, $from, $to ) {
 
 			$cat_views = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB -- custom analytics tables / source-verified hp_ schema; table names derive from $wpdb->prefix and cannot be placeholders; caching by design at the transient layer.
 				$wpdb->prepare( // phpcs:ignore WordPress.DB -- custom analytics tables / source-verified hp_ schema; table names derive from $wpdb->prefix and cannot be placeholders; caching by design at the transient layer.
-					'SELECT COALESCE(SUM(value),0) FROM ' . hpva_table() . " // phpcs:ignore WordPress.DB -- custom analytics tables / source-verified hp_ schema; table names derive from $wpdb->prefix and cannot be placeholders; caching by design at the transient layer.
+					'SELECT COALESCE(SUM(value),0) FROM ' . hpva_table() . "
 					 WHERE metric = 'view' AND stat_date BETWEEN %s AND %s
 					 AND listing_id IN ( $placeholders )", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 					array_merge( [ $from, $to ], array_map( 'intval', $cat_listings ) )
@@ -2241,6 +2269,12 @@ function hpva_render_listing_dashboard( $listing ) {
 
 	$out  = hpva_css();
 	$out .= '<div class="hpva">';
+
+	// Cache-safe self-view exclusion, same as the account dashboard.
+	if ( $vendor_id ) {
+		$out .= '<script>try{localStorage.setItem("hpvaOwner","' . (int) $vendor_id . '");}catch(e){}</script>';
+	}
+
 	$out .= '<p class="hpva-sub">' . sprintf(
 		// translators: %s: listing title.
 		esc_html__( 'Figures for "%s" only. See Account > Analytics for all listings combined.', 'hivepress-vendor-analytics' ),
@@ -2568,7 +2602,7 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0 ) {
 
 	$subject = $listing_id ? get_the_title( $listing_id ) : get_the_title( $vendor_id );
 
-	$out  = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">';
+	$out  = '<!DOCTYPE html><html lang="' . esc_attr( get_bloginfo( 'language' ) ) . '"><head><meta charset="utf-8">';
 	$out .= '<meta name="viewport" content="width=device-width, initial-scale=1">';
 	$out .= '<title>' . esc_html( $subject ) . ' - ' . esc_html__( 'Analytics report', 'hivepress-vendor-analytics' ) . '</title>';
 	$out .= hpva_report_css();

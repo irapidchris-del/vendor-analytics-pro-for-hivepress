@@ -57,7 +57,7 @@
 	}
 
 	// tel:/mailto: click tracking (delegated; counts once per link per page view).
-	if ( cfg.clicks && cfg.listing ) {
+	if ( cfg.clicks && ( cfg.listing || cfg.vendor ) ) {
 		var seen = [];
 
 		document.addEventListener( 'click', function ( event ) {

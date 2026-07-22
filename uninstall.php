@@ -20,9 +20,11 @@ $hpva_options = [
 	'hp_vendor_analytics_clicks',
 	'hp_vendor_analytics_search',
 	'hp_vendor_analytics_earnings',
+	'hp_vendor_analytics_sections',
 	'hp_vendor_analytics_benchmark',
 	'hp_vendor_analytics_retention',
 	'hpva_db_version',
+	'hpva_version',
 ];
 
 foreach ( $hpva_options as $hpva_option ) {

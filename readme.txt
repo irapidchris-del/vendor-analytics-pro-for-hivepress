@@ -2,7 +2,7 @@
 Contributors: chrisb
 Tags: hivepress, analytics, statistics, marketplace, vendors
 Requires at least: 6.0
-Tested up to: 6.8
+Tested up to: 7.0
 Requires PHP: 7.4
 Stable tag: 1.3.0
 License: GPLv2 or later
@@ -41,6 +41,14 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 * Added: "Download report" - a professional, self-contained HTML analytics report (summary with period-over-period changes, funnel, charts, benchmark, search terms, per-listing breakdown) that honours the admin's enabled sections and the vendor or listing scope. Mobile-friendly, and print-ready so the browser's print dialogue saves it as a clean PDF.
 * Changed: "Export CSV" now downloads a readable, sectioned report (summary with previous-period comparison and change, per-listing breakdown, search terms) instead of a raw data dump.
 * Added: introductions and tooltips on settings sections.
+* Fixed: critical - stray code-style annotations had been inserted inside several SQL query strings by the 1.2.1 cleanup, which made MySQL reject those queries and silently broke all data recording, the per-listing breakdown, search terms and the category benchmark. All queries are valid again.
+* Fixed: critical - the plugin now registers itself with HivePress using explicit extension details, so its classes load regardless of the installed folder name (previously the folder had to be named exactly "hivepress-vendor-analytics" for the Analytics pages to appear).
+* Fixed: critical - the per-listing Analytics tab redirected back to the listings screen because the listing was never resolved on the child route; it now resolves the listing from the URL (with the same ownership checks) exactly like core's own child routes.
+* Added: phone/email clicks are now also recorded on vendor profile pages (previously listing pages only, despite the setting's description).
+* Fixed: the vendor self-view exclusion flag is now also set when viewing a single listing's Analytics tab, not just the account dashboard.
+* Fixed: search impressions are no longer recorded for known crawlers.
+* Fixed: uninstall now also removes the visible-sections and version options.
+* Changed: the downloadable HTML report uses the site language attribute, and the translation template now includes all 1.3.0 strings.
 
 
 = 1.2.2 =
