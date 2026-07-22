@@ -4,7 +4,7 @@ Tags: hivepress, analytics, statistics, marketplace, vendors
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -18,7 +18,7 @@ Adds an Analytics page to the HivePress vendor account with daily first-party da
 * Phone (tel:) and email (mailto:) click tracking
 * Messages received and first-response-time trend
 * Bookings created/confirmed and a views > messages > bookings conversion funnel
-* Completed Marketplace order counts and earnings, with trend charts
+* Marketplace order counts and earnings (each vendor's payout, net of commission), with trend charts
 * Search terms that surfaced each listing in results
 * Average daily views per listing benchmarked against the category average
 * Per-listing breakdown table and selectable periods (7/30/90/365 days, all time)
@@ -33,9 +33,18 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 * View counting requires JavaScript. If you delay JS with a performance plugin, exclude `hpva` / `tracker.js` from the delay for immediate counting.
 * The tracking endpoint is public by design (cached pages cannot carry fresh nonces); it is protected by a strict metric whitelist, server-side vendor resolution, bot filtering and per-IP rate limiting. Treat counts as best-effort visitor metrics, not audited analytics.
 * Vendors' own visits are excluded via a browser flag set when they open their Analytics page - other devices they have never opened it on will count.
-* Earnings record completed Marketplace orders only; refunds are not netted.
+* Earnings reflect each vendor's payout after Marketplace commission (net of refunds and, where the site excludes them, taxes - the same figure as their Marketplace balance). Orders and earnings are recorded once, when an order is paid (Marketplace settles most orders on "processing" and downloadable ones on "completed" - both are counted). Later refunds or cancellations are not retroactively subtracted.
 
 == Changelog ==
+
+= 1.4.0 =
+Verified end to end against the Bookings, Marketplace and Requests extensions running on a live site, which surfaced several integration corrections:
+* Fixed: "Bookings created" never counted real bookings. Bookings are created as a hidden placeholder and only later filled in, so the previous detection missed every one; creation is now detected on the status change, and externally imported calendar blocks (iCal "private" bookings) are correctly excluded.
+* Fixed: earnings and order counts were only recorded for "completed" orders, but Marketplace settles most orders (services, physical goods, accepted offers) as "processing" - so the vast majority of real orders were never counted. Orders are now recorded once, when paid, on either status.
+* Changed: earnings now show each vendor's actual payout after Marketplace commission (net of refunds and, where excluded, taxes) - matching their Marketplace balance - instead of the gross order total, which overstated earnings on any commission-charging marketplace.
+* Fixed: "Offers accepted" was only detected on completed orders (and was tied to the earnings toggle), so accepted offers whose order stayed in "processing" were missed. It is now detected when the offer's order is paid, independently of the earnings setting.
+* Fixed: "Offers sent" over-counted - the blank offer "draft" used to hold an attachment was counted as a submitted offer. Only offers attached to a real request are now counted.
+* Added: an order is recorded only once even if it moves through several paid statuses (idempotency guard), and that per-order flag is cleaned up on uninstall.
 
 = 1.3.0 =
 * Added: "Download report" - a professional, self-contained HTML analytics report (summary with period-over-period changes, funnel, charts, benchmark, search terms, per-listing breakdown) that honours the admin's enabled sections and the vendor or listing scope. Mobile-friendly, and print-ready so the browser's print dialogue saves it as a clean PDF.

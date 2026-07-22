@@ -38,4 +38,7 @@ $wpdb->query( // phpcs:ignore WordPress.DB -- custom analytics tables / source-v
 	 OR option_name LIKE '\_transient\_timeout\_hpva\_%'"
 );
 
+// Per-order "already recorded" flags left on Marketplace orders.
+delete_post_meta_by_key( '_hpva_recorded' );
+
 wp_clear_scheduled_hook( 'hpva_daily_maintenance' );

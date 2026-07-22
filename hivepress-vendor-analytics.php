@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Vendor Analytics Pro for HivePress
  * Description: A first-party analytics dashboard for HivePress vendors - views, phone/email click tracking, messages, bookings funnel, earnings, response-time trends, search terms and category benchmarks, stored as daily aggregates with no third-party services.
- * Version: 1.3.0
+ * Version: 1.4.0
  * Author: ChrisB @ HivePress Community
  * Author URI: https://community.hivepress.io/u/chrisb
  * Requires Plugins: hivepress
@@ -38,7 +38,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'HPVA_VERSION', '1.3.0' );
+define( 'HPVA_VERSION', '1.4.0' );
 define( 'HPVA_DB_VERSION', '1' );
 define( 'HPVA_FILE', __FILE__ );
 
@@ -216,9 +216,11 @@ function hpva_init() {
 	// Event recorders via raw core hooks (see header notes for why).
 	add_action( 'wp_insert_comment', 'hpva_on_comment_insert', 10, 2 );
 	add_action( 'delete_comment', 'hpva_on_comment_delete', 10, 2 );
-	add_action( 'wp_insert_post', 'hpva_on_post_insert', 10, 3 );
 	add_action( 'transition_post_status', 'hpva_on_post_transition', 10, 3 );
-	add_action( 'woocommerce_order_status_completed', 'hpva_on_order_completed', 10, 1 );
+	// Marketplace settles orders on 'processing' (services/goods/offers) or
+	// 'completed' (downloadable); the handler records each order only once.
+	add_action( 'woocommerce_order_status_processing', 'hpva_on_order_paid', 10, 1 );
+	add_action( 'woocommerce_order_status_completed', 'hpva_on_order_paid', 10, 1 );
 
 	// Per-listing Analytics tab in the listing manage menu (mirrors the
 	// official Statistics extension's verified pattern).
@@ -286,7 +288,7 @@ function hpva_register_settings( $settings ) {
 
 					'vendor_analytics_earnings'  => [
 						'label'   => __( 'Track earnings', 'hivepress-vendor-analytics' ),
-						'caption' => __( 'Record completed Marketplace order totals per vendor (requires Marketplace)', 'hivepress-vendor-analytics' ),
+						'caption' => __( 'Record each vendor\'s payout from completed Marketplace orders, after commission (requires Marketplace)', 'hivepress-vendor-analytics' ),
 						'type'    => 'checkbox',
 						'default' => true,
 						'_order'  => 40,
@@ -526,7 +528,15 @@ function hpva_on_comment_insert( $comment_id, $comment = null ) {
 	}
 
 	// Offers (verified schema: bidder = user_id, request = comment_post_ID).
+	// When attachments are enabled the Requests extension pre-inserts a blank
+	// "offer draft" comment with comment_post_ID = 0 (no request yet) to hold
+	// the upload; that is not a submitted offer, so a real request id is
+	// required before counting.
 	if ( 'hp_offer' === $comment->comment_type ) {
+		if ( (int) $comment->comment_post_ID <= 0 ) {
+			return;
+		}
+
 		$vendor_id = hpva_vendor_id_from_user( (int) $comment->user_id );
 
 		if ( $vendor_id ) {
@@ -630,29 +640,19 @@ function hpva_on_comment_delete( $comment_id, $comment = null ) {
 /* --- Bookings ----------------------------------------------------------- */
 
 /**
- * Records newly created bookings.
+ * Records booking creation and confirmation from status transitions.
  *
- * @param int          $post_id Post ID.
- * @param WP_Post|null $post Post object.
- * @param bool         $update Whether this is an update.
- * @return void
- */
-function hpva_on_post_insert( $post_id, $post = null, $update = false ) {
-	if ( $update || ! $post || 'hp_booking' !== $post->post_type || 'auto-draft' === $post->post_status ) {
-		return;
-	}
-
-	// Verified Bookings schema: listing = post_parent.
-	$listing_id = (int) $post->post_parent;
-	$vendor_id  = hpva_vendor_id_from_listing( $listing_id );
-
-	if ( $vendor_id ) {
-		hpva_record( 'booking_new', $vendor_id, $listing_id );
-	}
-}
-
-/**
- * Records confirmed bookings on status transitions.
+ * Bookings are born as an 'auto-draft' placeholder (verified in the Bookings
+ * extension's checkout controller) and only later filled in and moved to
+ * 'pending'/'publish' via an UPDATE, so a wp_insert_post listener never sees a
+ * real "new booking". transition_post_status fires on every change (including
+ * the initial insert, new -> auto-draft), so both events are detected here:
+ *  - booking_new: the first move OUT of the pre-creation states into an active
+ *    status (a booking request was actually placed).
+ *  - booking_confirmed: reaching 'publish' (paid/confirmed) from any other
+ *    status.
+ * Consolidating both into one handler also avoids the double-count that two
+ * separate insert+transition listeners would cause for a direct publish.
  *
  * @param string       $new_status New status.
  * @param string       $old_status Old status.
@@ -660,14 +660,33 @@ function hpva_on_post_insert( $post_id, $post = null, $update = false ) {
  * @return void
  */
 function hpva_on_post_transition( $new_status, $old_status, $post ) {
-	if ( ! $post || 'hp_booking' !== $post->post_type || 'publish' !== $new_status || 'publish' === $old_status ) {
+	if ( ! $post || 'hp_booking' !== $post->post_type || $new_status === $old_status ) {
 		return;
 	}
 
+	// Verified Bookings schema: listing = post_parent.
 	$listing_id = (int) $post->post_parent;
 	$vendor_id  = hpva_vendor_id_from_listing( $listing_id );
 
-	if ( $vendor_id ) {
+	if ( ! $vendor_id ) {
+		return;
+	}
+
+	// Real customer booking states. Deliberately a whitelist: it excludes
+	// 'private' (external iCal-imported blocks and vendor calendar blocks, which
+	// are not customer bookings), 'trash' (cancelled), 'future', 'auto-draft'
+	// and 'inherit'. Verified against the Bookings extension: the checkout
+	// controller moves a real booking auto-draft -> pending/publish, while the
+	// import routine creates blocks directly as 'private'.
+	$active = [ 'draft', 'pending', 'publish' ];
+
+	// A booking was placed: it left the placeholder state for a live status.
+	if ( in_array( $old_status, [ 'new', 'auto-draft' ], true ) && in_array( $new_status, $active, true ) ) {
+		hpva_record( 'booking_new', $vendor_id, $listing_id );
+	}
+
+	// A booking was confirmed: it reached 'publish' from a non-published state.
+	if ( 'publish' === $new_status && 'publish' !== $old_status ) {
 		hpva_record( 'booking_confirmed', $vendor_id, $listing_id );
 	}
 }
@@ -675,21 +694,36 @@ function hpva_on_post_transition( $new_status, $old_status, $post ) {
 /* --- Earnings (Marketplace) --------------------------------------------- */
 
 /**
- * Records completed order counts, earnings and accepted offers.
+ * Records order counts, earnings and accepted offers when a Marketplace order
+ * is paid.
+ *
+ * Marketplace settles orders on payment via a status filter: downloadable
+ * items go straight to 'completed', but everything else (services, physical
+ * goods, accepted-offer purchases) settles on 'processing'. Listening only on
+ * 'completed' would therefore miss the majority of real orders, so both hooks
+ * funnel here and a per-order flag guarantees a single recording even as the
+ * order later moves processing -> completed or re-enters a status.
  *
  * @param int $order_id Order ID.
  * @return void
  */
-function hpva_on_order_completed( $order_id ) {
-	if ( ! hpva_get_option( 'vendor_analytics_earnings', true ) || ! function_exists( 'wc_get_order' ) ) {
+function hpva_on_order_paid( $order_id ) {
+	if ( ! function_exists( 'wc_get_order' ) ) {
 		return;
 	}
 
+	$order_id = (int) $order_id;
+
 	// Marketplace stores the vendor ID in 'hp_vendor' order meta (verified);
 	// orders without it are not marketplace orders and are skipped.
-	$vendor_id = (int) get_post_meta( (int) $order_id, 'hp_vendor', true );
+	$vendor_id = (int) get_post_meta( $order_id, 'hp_vendor', true );
 
 	if ( ! $vendor_id ) {
+		return;
+	}
+
+	// Record each order exactly once.
+	if ( get_post_meta( $order_id, '_hpva_recorded', true ) ) {
 		return;
 	}
 
@@ -699,16 +733,35 @@ function hpva_on_order_completed( $order_id ) {
 		return;
 	}
 
-	$minor = (int) round( (float) $order->get_total() * 100 );
+	update_post_meta( $order_id, '_hpva_recorded', 1 );
 
-	hpva_record( 'order', $vendor_id, 0, 1 );
+	// Orders and earnings respect the "Track earnings" setting.
+	if ( hpva_get_option( 'vendor_analytics_earnings', true ) ) {
+		// Earnings should reflect what the vendor actually receives, so prefer
+		// Marketplace's own payout calculation (net of platform commission,
+		// refunds and - per the site's setting - taxes), which is the same
+		// figure it shows in the vendor's balance. Fall back to the gross order
+		// total only if that method is unavailable.
+		$amount    = (float) $order->get_total();
+		$component = function_exists( 'hivepress' ) ? hivepress()->marketplace : null;
 
-	if ( $minor > 0 ) {
-		hpva_record( 'earning_minor', $vendor_id, 0, $minor );
+		if ( $component && method_exists( $component, 'get_order_profit' ) ) {
+			$amount = (float) $component->get_order_profit( $order );
+		}
+
+		$minor = (int) round( $amount * 100 );
+
+		hpva_record( 'order', $vendor_id, 0, 1 );
+
+		if ( $minor > 0 ) {
+			hpva_record( 'earning_minor', $vendor_id, 0, $minor );
+		}
 	}
 
-	// Accepted offer detection (verified in the Requests extension: an
-	// order's first product has the request post as its post_parent).
+	// Accepted-offer detection is a Requests conversion metric, recorded
+	// independently of the earnings setting (verified in the Requests
+	// extension: an accepted offer becomes an order whose first line-item
+	// product has the request post as its post_parent).
 	if ( class_exists( '\\HivePress\\Models\\Offer' ) ) {
 		$items = $order->get_items( 'line_item' );
 		$item  = is_array( $items ) ? reset( $items ) : false;
