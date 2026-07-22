@@ -45,6 +45,7 @@ Verified end to end against the Bookings, Marketplace and Requests extensions ru
 * Fixed: "Offers accepted" was only detected on completed orders (and was tied to the earnings toggle), so accepted offers whose order stayed in "processing" were missed. It is now detected when the offer's order is paid, independently of the earnings setting.
 * Fixed: "Offers sent" over-counted - the blank offer "draft" used to hold an attachment was counted as a submitted offer. Only offers attached to a real request are now counted.
 * Added: an order is recorded only once even if it moves through several paid statuses (idempotency guard), and that per-order flag is cleaned up on uninstall.
+* Fixed: earnings now scale to the store's actual currency decimals, so zero-decimal currencies (e.g. JPY) and three-decimal currencies (e.g. KWD) are stored and displayed correctly instead of assuming two decimals.
 
 = 1.3.0 =
 * Added: "Download report" - a professional, self-contained HTML analytics report (summary with period-over-period changes, funnel, charts, benchmark, search terms, per-listing breakdown) that honours the admin's enabled sections and the vendor or listing scope. Mobile-friendly, and print-ready so the browser's print dialogue saves it as a clean PDF.

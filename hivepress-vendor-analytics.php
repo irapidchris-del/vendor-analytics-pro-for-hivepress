@@ -749,7 +749,8 @@ function hpva_on_order_paid( $order_id ) {
 			$amount = (float) $component->get_order_profit( $order );
 		}
 
-		$minor = (int) round( $amount * 100 );
+		list( $factor ) = hpva_currency_scale();
+		$minor          = (int) round( $amount * $factor );
 
 		hpva_record( 'order', $vendor_id, 0, 1 );
 
@@ -1517,7 +1518,29 @@ Formatting + SVG charts (pure functions, unit-tested in isolation).
 function hpva_money( $minor ) {
 	$symbol = function_exists( 'get_woocommerce_currency_symbol' ) ? html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ) : '';
 
-	return $symbol . number_format_i18n( $minor / 100, 2 );
+	list( $factor, $decimals ) = hpva_currency_scale();
+
+	return $symbol . number_format_i18n( $minor / $factor, $decimals );
+}
+
+/**
+ * The shop currency's minor-unit scale as [ factor, decimals ]. WooCommerce
+ * currencies range from 0 decimals (e.g. JPY) to 3 (e.g. KWD); the store's
+ * "number of decimals" setting is authoritative, defaulting to 2. Both the
+ * write path (earnings stored as amount x factor) and the read path
+ * (formatted as value / factor) use this, so earnings scale correctly for any
+ * currency.
+ *
+ * @return array{0: int, 1: int}
+ */
+function hpva_currency_scale() {
+	$decimals = function_exists( 'wc_get_price_decimals' ) ? (int) wc_get_price_decimals() : 2;
+
+	if ( $decimals < 0 || $decimals > 4 ) {
+		$decimals = 2;
+	}
+
+	return [ (int) pow( 10, $decimals ), $decimals ];
 }
 
 /**
@@ -2029,10 +2052,11 @@ function hpva_render_dashboard() {
 
 	// Earnings trend.
 	if ( hpva_section_on( 'earnings' ) && $earnings > 0 ) {
-		$e_series = hpva_series( $vendor_id, 'earning_minor', $chart_from, $to );
+		$e_series       = hpva_series( $vendor_id, 'earning_minor', $chart_from, $to );
+		list( $factor ) = hpva_currency_scale();
 
 		foreach ( $e_series as $day => $minor ) {
-			$e_series[ $day ] = (int) round( $minor / 100 );
+			$e_series[ $day ] = (int) round( $minor / $factor );
 		}
 
 		$out .= '<h3 class="hpva-h">' . esc_html__( 'Earnings', 'hivepress-vendor-analytics' ) . '</h3>';
@@ -2803,10 +2827,11 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0 ) {
 	}
 
 	if ( ! $listing_id && hpva_section_on( 'earnings' ) && $earnings > 0 ) {
-		$e_series = hpva_series( $vendor_id, 'earning_minor', $chart_from, $to );
+		$e_series       = hpva_series( $vendor_id, 'earning_minor', $chart_from, $to );
+		list( $factor ) = hpva_currency_scale();
 
 		foreach ( $e_series as $day => $minor ) {
-			$e_series[ $day ] = (int) round( $minor / 100 );
+			$e_series[ $day ] = (int) round( $minor / $factor );
 		}
 
 		$out .= '<h2 class="hpva-h2">' . esc_html__( 'Earnings', 'hivepress-vendor-analytics' ) . '</h2>';
