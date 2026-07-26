@@ -4,7 +4,7 @@ Tags: hivepress, analytics, statistics, marketplace, vendors
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.4.0
+Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,9 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 * Earnings reflect each vendor's payout after Marketplace commission (net of refunds and, where the site excludes them, taxes - the same figure as their Marketplace balance). Orders and earnings are recorded once, when an order is paid (Marketplace settles most orders on "processing" and downloadable ones on "completed" - both are counted). Later refunds or cancellations are not retroactively subtracted.
 
 == Changelog ==
+
+= 1.5.0 =
+* Added: automatic updates from GitHub releases. New versions now appear on the WordPress Plugins screen with an update notice and a one-click "update now", and you can force an immediate check with the "Check for updates" link. Uses the widely used Plugin Update Checker library; the updater only loads in the admin and during cron, so it adds nothing to front-end page loads.
 
 = 1.4.0 =
 Verified end to end against the Bookings, Marketplace and Requests extensions running on a live site, which surfaced several integration corrections:

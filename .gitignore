@@ -1,0 +1,7 @@
+# Build artifacts (produced by build.sh; not part of the source tree).
+/build/
+/dist/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db

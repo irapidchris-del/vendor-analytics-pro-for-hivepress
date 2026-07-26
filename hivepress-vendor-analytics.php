@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Vendor Analytics Pro for HivePress
  * Description: A first-party analytics dashboard for HivePress vendors - views, phone/email click tracking, messages, bookings funnel, earnings, response-time trends, search terms and category benchmarks, stored as daily aggregates with no third-party services.
- * Version: 1.4.0
+ * Version: 1.5.0
  * Author: ChrisB @ HivePress Community
  * Author URI: https://community.hivepress.io/u/chrisb
  * Requires Plugins: hivepress
@@ -38,9 +38,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'HPVA_VERSION', '1.4.0' );
+define( 'HPVA_VERSION', '1.5.0' );
 define( 'HPVA_DB_VERSION', '1' );
 define( 'HPVA_FILE', __FILE__ );
+
+// GitHub repository the auto-updater reads releases from.
+define( 'HPVA_GITHUB', 'https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress/' );
 
 // Register this plugin with HivePress so core autoloads our controller,
 // template and block classes. The explicit array form is required: with a
@@ -64,6 +67,60 @@ add_filter(
 		return $extensions;
 	}
 );
+
+/*
+--------------------------------------------------------------------------
+Updates (GitHub releases via the Plugin Update Checker library).
+--------------------------------------------------------------------------
+*/
+
+add_action( 'init', 'hpva_updater', 5 );
+
+/**
+ * Wires up update checking against GitHub releases so sites see new versions
+ * on the Plugins screen (with a "check for updates" link and one-click
+ * in-place updates). The .zip asset attached to each release is used as the
+ * update package, so the plugin always lands back in its own folder without
+ * GitHub's "repo-tag" wrapper directory or any version suffix.
+ *
+ * Bundled library is optional: if it is ever stripped, the plugin keeps
+ * working - it simply will not self-update.
+ *
+ * @return void
+ */
+function hpva_updater() {
+	// Updates are only ever resolved in the admin or during cron, so there is
+	// no need to load the library on front-end requests.
+	if ( ! is_admin() && ! wp_doing_cron() ) {
+		return;
+	}
+
+	$loader = __DIR__ . '/includes/plugin-update-checker/plugin-update-checker.php';
+
+	if ( ! is_readable( $loader ) ) {
+		return;
+	}
+
+	require_once $loader;
+
+	if ( ! class_exists( '\YahnisElsts\PluginUpdateChecker\v5\PucFactory' ) ) {
+		return;
+	}
+
+	$checker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+		HPVA_GITHUB,
+		HPVA_FILE,
+		'vendor-analytics-pro-for-hivepress'
+	);
+
+	// Prefer the attached .zip release asset over GitHub's auto-generated
+	// source archive, so the update installs into the correct folder.
+	$api = $checker->getVcsApi();
+
+	if ( method_exists( $api, 'enableReleaseAssets' ) ) {
+		$api->enableReleaseAssets( '/\.zip($|[?&#])/i' );
+	}
+}
 
 /*
 --------------------------------------------------------------------------
