@@ -1,8 +1,9 @@
 <?php
 /**
  * Plugin Name: Vendor Analytics Pro for HivePress
+ * Plugin URI: https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress
  * Description: A first-party analytics dashboard for HivePress vendors - views, phone/email click tracking, messages, bookings funnel, earnings, response-time trends, search terms and category benchmarks, stored as daily aggregates with no third-party services.
- * Version: 1.5.0
+ * Version: 1.5.1
  * Author: ChrisB @ HivePress Community
  * Author URI: https://community.hivepress.io/u/chrisb
  * Requires Plugins: hivepress
@@ -10,6 +11,7 @@
  * Requires PHP: 7.4
  * License: GPLv2 or later
  * Text Domain: hivepress-vendor-analytics
+ * Update URI: https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress
  *
  * @package HivePress\Vendor_Analytics
  *
@@ -38,12 +40,16 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'HPVA_VERSION', '1.5.0' );
+define( 'HPVA_VERSION', '1.5.1' );
 define( 'HPVA_DB_VERSION', '1' );
 define( 'HPVA_FILE', __FILE__ );
 
-// GitHub repository the auto-updater reads releases from.
-define( 'HPVA_GITHUB', 'https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress/' );
+// Auto-updater: the GitHub repo releases are read from, the plugin slug
+// (which must equal the installed plugin folder name) and the release cache
+// key. See the "Updates" section below.
+define( 'HPVA_UPDATE_REPO', 'irapidchris-del/vendor-analytics-pro-for-hivepress' );
+define( 'HPVA_UPDATE_SLUG', 'vendor-analytics-pro-for-hivepress' );
+define( 'HPVA_UPDATE_CACHE_KEY', 'hpva_github_release' );
 
 // Register this plugin with HivePress so core autoloads our controller,
 // template and block classes. The explicit array form is required: with a
@@ -70,57 +76,302 @@ add_filter(
 
 /*
 --------------------------------------------------------------------------
-Updates (GitHub releases via the Plugin Update Checker library).
+Updates.
+
+Distributed via GitHub releases rather than wp.org, so update checks use the
+native `update_plugins_{$hostname}` API introduced in WordPress 5.8, keyed off
+the "Update URI" header above (host: github.com). The update package is the
+release asset named `*.zip`, which contains a single
+`vendor-analytics-pro-for-hivepress` directory. No third-party library.
 --------------------------------------------------------------------------
 */
 
-add_action( 'init', 'hpva_updater', 5 );
+/**
+ * Gets the latest GitHub release details, cached in a site transient.
+ *
+ * @param bool $force Bypass the cache.
+ * @return array<string, string>|null
+ */
+function hpva_get_latest_release( $force = false ) {
+	$release = $force ? false : get_site_transient( HPVA_UPDATE_CACHE_KEY );
+
+	if ( ! is_array( $release ) ) {
+		$release = hpva_fetch_latest_release();
+
+		// Success is cached for 6 hours; failures briefly, so a flaky network
+		// does not hammer the API on every admin page load.
+		set_site_transient( HPVA_UPDATE_CACHE_KEY, $release, $release ? 6 * HOUR_IN_SECONDS : HOUR_IN_SECONDS );
+	}
+
+	return $release ? $release : null;
+}
 
 /**
- * Wires up update checking against GitHub releases so sites see new versions
- * on the Plugins screen (with a "check for updates" link and one-click
- * in-place updates). The .zip asset attached to each release is used as the
- * update package, so the plugin always lands back in its own folder without
- * GitHub's "repo-tag" wrapper directory or any version suffix.
+ * Fetches the latest release details from the GitHub API.
  *
- * Bundled library is optional: if it is ever stripped, the plugin keeps
- * working - it simply will not self-update.
+ * The /releases/latest endpoint excludes drafts and pre-releases, so tagging a
+ * pre-release never triggers an update notice.
+ *
+ * @return array<string, string>
+ */
+function hpva_fetch_latest_release() {
+	$response = wp_remote_get(
+		'https://api.github.com/repos/' . HPVA_UPDATE_REPO . '/releases/latest',
+		[
+			'timeout' => 10,
+			'headers' => [ 'Accept' => 'application/vnd.github+json' ],
+		]
+	);
+
+	if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+		return [];
+	}
+
+	$data = json_decode( wp_remote_retrieve_body( $response ), true );
+
+	if ( ! is_array( $data ) ) {
+		return [];
+	}
+
+	// Version is the release tag, with or without a leading "v".
+	$version = ltrim( (string) ( isset( $data['tag_name'] ) ? $data['tag_name'] : '' ), 'vV' );
+
+	if ( ! $version ) {
+		return [];
+	}
+
+	// The update package is the first release asset named `*.zip`.
+	$package = '';
+
+	foreach ( (array) ( isset( $data['assets'] ) ? $data['assets'] : [] ) as $asset ) {
+		$name = strtolower( (string) ( isset( $asset['name'] ) ? $asset['name'] : '' ) );
+
+		if ( '.zip' === substr( $name, -4 ) && ! empty( $asset['browser_download_url'] ) ) {
+			$package = (string) $asset['browser_download_url'];
+
+			break;
+		}
+	}
+
+	if ( ! $package ) {
+		return [];
+	}
+
+	return [
+		'version'   => $version,
+		'package'   => $package,
+		'url'       => (string) ( isset( $data['html_url'] ) ? $data['html_url'] : 'https://github.com/' . HPVA_UPDATE_REPO ),
+		'notes'     => (string) ( isset( $data['body'] ) ? $data['body'] : '' ),
+		'published' => (string) ( isset( $data['published_at'] ) ? $data['published_at'] : '' ),
+	];
+}
+
+/**
+ * Feeds the update details to the WordPress update system. WordPress matches
+ * this plugin to the filter via the Update URI header host and compares the
+ * versions itself.
+ *
+ * @param array<string, mixed>|false $update Update data.
+ * @param array<string, string>      $plugin_data Plugin headers.
+ * @param string                     $plugin_file Plugin basename.
+ * @return array<string, mixed>|false
+ */
+function hpva_check_for_update( $update, $plugin_data, $plugin_file ) {
+	if ( plugin_basename( HPVA_FILE ) !== $plugin_file ) {
+		return $update;
+	}
+
+	$release = hpva_get_latest_release();
+
+	if ( ! $release ) {
+		return $update;
+	}
+
+	return [
+		'id'      => 'https://github.com/' . HPVA_UPDATE_REPO,
+		'slug'    => HPVA_UPDATE_SLUG,
+		'plugin'  => $plugin_file,
+		'version' => $release['version'],
+		'url'     => $release['url'],
+		'package' => $release['package'],
+	];
+}
+
+add_filter( 'update_plugins_github.com', 'hpva_check_for_update', 10, 3 );
+
+/**
+ * Provides the plugin details for the "View version details" popup, since the
+ * plugin is not hosted on wp.org.
+ *
+ * @param object|array|false $result Result object.
+ * @param string             $action API action.
+ * @param object             $args API arguments.
+ * @return object|array|false
+ */
+function hpva_update_plugin_info( $result, $action, $args ) {
+	if ( 'plugin_information' !== $action || ! is_object( $args ) || HPVA_UPDATE_SLUG !== ( isset( $args->slug ) ? $args->slug : '' ) ) {
+		return $result;
+	}
+
+	$release = hpva_get_latest_release();
+
+	if ( ! $release ) {
+		return $result;
+	}
+
+	$plugin_data = get_file_data(
+		HPVA_FILE,
+		[
+			'Name'        => 'Plugin Name',
+			'Description' => 'Description',
+			'Author'      => 'Author',
+			'AuthorURI'   => 'Author URI',
+			'RequiresWP'  => 'Requires at least',
+			'RequiresPHP' => 'Requires PHP',
+		]
+	);
+
+	return (object) [
+		'name'          => $plugin_data['Name'],
+		'slug'          => HPVA_UPDATE_SLUG,
+		'version'       => $release['version'],
+		'author'        => '<a href="' . esc_url( $plugin_data['AuthorURI'] ) . '">' . esc_html( $plugin_data['Author'] ) . '</a>',
+		'homepage'      => 'https://github.com/' . HPVA_UPDATE_REPO,
+		'requires'      => $plugin_data['RequiresWP'],
+		'requires_php'  => $plugin_data['RequiresPHP'],
+		'last_updated'  => $release['published'],
+		'download_link' => $release['package'],
+		'sections'      => [
+			'description' => wpautop( esc_html( $plugin_data['Description'] ) ),
+			'changelog'   => $release['notes'] ? wpautop( esc_html( $release['notes'] ) ) : '<p>' . esc_html__( 'See the GitHub releases page for the changelog.', 'hivepress-vendor-analytics' ) . '</p>',
+		],
+	];
+}
+
+add_filter( 'plugins_api', 'hpva_update_plugin_info', 10, 3 );
+
+/**
+ * Adds a "Check for updates" link to the plugin's row on the Plugins screen.
+ *
+ * @param array<string> $links Plugin action links.
+ * @return array<string>
+ */
+function hpva_update_check_link( $links ) {
+	if ( current_user_can( 'update_plugins' ) ) {
+		$links[] = '<a href="' . esc_url( wp_nonce_url( self_admin_url( 'plugins.php?hpva_check_updates=1' ), 'hpva_check_updates' ) ) . '">' . esc_html__( 'Check for updates', 'hivepress-vendor-analytics' ) . '</a>';
+	}
+
+	return $links;
+}
+
+add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'hpva_update_check_link' );
+add_filter( 'network_admin_plugin_action_links_' . plugin_basename( __FILE__ ), 'hpva_update_check_link' );
+
+/**
+ * Handles the manual "Check for updates" click: refreshes the cached release,
+ * re-runs the update check and redirects back with the result.
  *
  * @return void
  */
-function hpva_updater() {
-	// Updates are only ever resolved in the admin or during cron, so there is
-	// no need to load the library on front-end requests.
-	if ( ! is_admin() && ! wp_doing_cron() ) {
+function hpva_handle_update_check() {
+	if ( ! isset( $_GET['hpva_check_updates'] ) || ! current_user_can( 'update_plugins' ) ) {
 		return;
 	}
 
-	$loader = __DIR__ . '/includes/plugin-update-checker/plugin-update-checker.php';
+	check_admin_referer( 'hpva_check_updates' );
 
-	if ( ! is_readable( $loader ) ) {
-		return;
+	$release = hpva_get_latest_release( true );
+
+	wp_clean_plugins_cache();
+	wp_update_plugins();
+
+	$status = 'none';
+
+	if ( ! $release ) {
+		$status = 'error';
+	} elseif ( version_compare( $release['version'], HPVA_VERSION, '>' ) ) {
+		$status = 'available';
 	}
 
-	require_once $loader;
+	wp_safe_redirect( add_query_arg( 'hpva_checked', $status, self_admin_url( 'plugins.php' ) ) );
 
-	if ( ! class_exists( '\YahnisElsts\PluginUpdateChecker\v5\PucFactory' ) ) {
-		return;
-	}
-
-	$checker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
-		HPVA_GITHUB,
-		HPVA_FILE,
-		'vendor-analytics-pro-for-hivepress'
-	);
-
-	// Prefer the attached .zip release asset over GitHub's auto-generated
-	// source archive, so the update installs into the correct folder.
-	$api = $checker->getVcsApi();
-
-	if ( method_exists( $api, 'enableReleaseAssets' ) ) {
-		$api->enableReleaseAssets( '/\.zip($|[?&#])/i' );
-	}
+	exit;
 }
+
+add_action( 'admin_init', 'hpva_handle_update_check' );
+
+/**
+ * Shows the result of a manual update check.
+ *
+ * @return void
+ */
+function hpva_update_check_notice() {
+	if ( ! isset( $_GET['hpva_checked'] ) || ! current_user_can( 'update_plugins' ) ) {
+		return;
+	}
+
+	$status = sanitize_key( wp_unslash( $_GET['hpva_checked'] ) );
+
+	if ( 'available' === $status ) {
+		$release = hpva_get_latest_release();
+
+		/* translators: %s: new version number. */
+		$message = sprintf( __( 'A new version of Vendor Analytics Pro for HivePress (%s) is available.', 'hivepress-vendor-analytics' ), $release ? $release['version'] : '' );
+		$class   = 'notice-success';
+	} elseif ( 'none' === $status ) {
+		$message = __( 'Vendor Analytics Pro for HivePress is up to date.', 'hivepress-vendor-analytics' );
+		$class   = 'notice-success';
+	} elseif ( 'error' === $status ) {
+		$message = __( 'Could not reach GitHub to check for updates. Please try again later.', 'hivepress-vendor-analytics' );
+		$class   = 'notice-error';
+	} else {
+		return;
+	}
+
+	echo '<div class="notice ' . esc_attr( $class ) . ' is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+}
+
+add_action( 'admin_notices', 'hpva_update_check_notice' );
+add_action( 'network_admin_notices', 'hpva_update_check_notice' );
+
+/**
+ * Renames the extracted update folder to the currently installed plugin
+ * directory, so an update always installs back into the same folder even if
+ * the release zip is ever packaged with a different top-level directory name.
+ *
+ * @param string               $source Extracted update source.
+ * @param string               $remote_source Remote source directory.
+ * @param object               $upgrader Upgrader instance.
+ * @param array<string, mixed> $hook_extra Extra hook arguments.
+ * @return string|\WP_Error
+ */
+function hpva_fix_update_directory( $source, $remote_source, $upgrader, $hook_extra = [] ) {
+	global $wp_filesystem;
+
+	if ( plugin_basename( HPVA_FILE ) !== ( isset( $hook_extra['plugin'] ) ? $hook_extra['plugin'] : '' ) || ! $wp_filesystem ) {
+		return $source;
+	}
+
+	$directory = dirname( plugin_basename( HPVA_FILE ) );
+
+	if ( '.' === $directory ) {
+		return $source;
+	}
+
+	$target = trailingslashit( $remote_source ) . $directory . '/';
+
+	if ( trailingslashit( $source ) === $target ) {
+		return $source;
+	}
+
+	if ( ! $wp_filesystem->move( untrailingslashit( $source ), untrailingslashit( $target ) ) ) {
+		return new \WP_Error( 'hpva_rename_failed', __( 'Could not rename the update directory.', 'hivepress-vendor-analytics' ) );
+	}
+
+	return $target;
+}
+
+add_filter( 'upgrader_source_selection', 'hpva_fix_update_directory', 10, 4 );
 
 /*
 --------------------------------------------------------------------------

@@ -1,63 +1,77 @@
 # Releasing a new version
 
-The plugin self-updates from **GitHub Releases** using the
-[Plugin Update Checker](https://github.com/YahnisElsts/plugin-update-checker)
-library bundled in `includes/plugin-update-checker/`. Once a site is running a
-version that contains the updater, every future GitHub release shows up on the
-site's **Plugins** screen with an update notice and a one-click update.
+The plugin self-updates from **GitHub Releases** using WordPress's native update
+API (the `Update URI` header + the `update_plugins_github.com` filter, WP 5.8+).
+No third-party library is bundled. Once a site runs a version that contains the
+updater, every later GitHub release shows up on the **Plugins** screen with an
+update notice, a working "View version details" popup, and a one-click update.
+
+## How it works
+
+- The plugin polls `https://api.github.com/repos/OWNER/REPO/releases/latest`
+  (cached in a site transient: 6h on success, 1h on failure).
+- The new version is the release **tag** with any leading `v` stripped.
+- The update package is the **first release asset whose name ends in `.zip`**.
+- On install, the extracted folder is renamed to the plugin's own directory, so
+  updates always land in `vendor-analytics-pro-for-hivepress/`.
 
 ## One-time setup
 
-- The repository must be **public** (or releases must be publicly downloadable).
-  The updater and the download link below rely on unauthenticated access to the
-  release asset. Do not embed a personal access token in the plugin.
-- The first public build that contains the updater is the baseline: users must
-  install it once (manually) before automatic updates can take over.
+- The repository must be **public** (the updater and the download link use
+  unauthenticated GitHub access — never embed a token).
+- The first public build that contains the updater is the baseline: users
+  install it once, and automatic updates take over from the next release.
 
 ## Cutting a release
 
-1. **Bump the version in all four places** (they must match):
+1. **Bump the version in all four places** (they must match, or `build.sh`
+   refuses to build):
    - `hivepress-vendor-analytics.php` header — `Version:`
    - `hivepress-vendor-analytics.php` — `define( 'HPVA_VERSION', ... )`
    - `readme.txt` — `Stable tag:`
    - `readme.txt` — the top `== Changelog ==` entry
-2. **Build the zips:**
-   ```bash
-   ./build.sh
-   ```
-   This writes two files to `dist/`:
-   - `vendor-analytics-pro-for-hivepress.zip` — the **release asset** (clean name)
-   - `vendor-analytics-pro-for-hivepress-<version>.zip` — an identical copy with
-     the version in the file name, for your own tracking
-   Both contain a single top-level folder `vendor-analytics-pro-for-hivepress/`,
-   so WordPress installs/updates them into the correct folder with no warnings.
-3. **Create a GitHub release:**
-   - Tag it `v<version>` or `<version>` (e.g. `v1.5.0`). The tag drives the
-     version the updater compares against, so it must equal the header version.
-   - Paste the changelog for this version into the release notes.
-   - **Attach `dist/vendor-analytics-pro-for-hivepress.zip` as a release asset.**
-     The file name of the attached asset must stay exactly
-     `vendor-analytics-pro-for-hivepress.zip` on every release.
-4. **Publish.** Within a few hours WordPress sites will see the update (users can
-   force an immediate check with the "Check for updates" link on the Plugins
-   screen).
+2. Commit and merge to the default branch (`main`).
+3. **Publish the release.** The tag must equal the header version (prefixed with
+   `v`, e.g. `v1.5.1`). Two equivalent ways:
+
+   **a) From GitHub** — create a Release (tag `v1.5.1`), publish it, and the
+   `release.yml` workflow builds and attaches
+   `vendor-analytics-pro-for-hivepress.zip` automatically.
+
+   **b) From the GitHub Actions tab** — run the **Release** workflow via
+   *Run workflow* with `tag = v1.5.1` (and optional notes). It creates the
+   release, sets the notes, and attaches the asset.
+
+## Publishing from a Claude session
+
+`gh` and the raw releases REST API are not available inside sessions, so drive
+the workflow through the GitHub MCP instead:
+
+1. Bump the `Version:` header (and the three other spots), commit, merge to `main`.
+2. Trigger the workflow:
+   `actions_run_trigger` → method `run_workflow`, `workflow_id: release.yml`,
+   `ref: main`, `inputs: { tag: "v1.5.1", notes: "<changelog>" }`.
+3. Verify with `get_release_by_tag` (tag `v1.5.1`) that the tag, the notes and
+   the `vendor-analytics-pro-for-hivepress.zip` asset all landed.
 
 ## The permanent download link
 
-Because every release attaches an asset with the same name, GitHub's
-"latest release" redirect always points at the newest build:
+Every release attaches an asset with the same name, so GitHub's "latest release"
+redirect always points at the newest build:
 
 ```
 https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress/releases/latest/download/vendor-analytics-pro-for-hivepress.zip
 ```
 
-This URL ends in `.zip`, downloads instantly, and never needs updating — post it
-once on the HivePress community forum and it will always serve the latest version.
+This URL ends in `.zip`, downloads instantly, and never changes — post it once on
+the HivePress community forum.
 
 ## Notes
 
-- `build/` and `dist/` are git-ignored; they are local artifacts only.
-- The updater only loads in the admin and during cron, so it adds nothing to
-  front-end page loads.
-- If the bundled library is ever removed, the plugin keeps working — it simply
-  stops self-updating.
+- `build.sh` produces `dist/vendor-analytics-pro-for-hivepress.zip` (the release
+  asset) plus a version-suffixed copy for local tracking. Both wrap a single
+  version-less `vendor-analytics-pro-for-hivepress/` folder, so WordPress never
+  shows a folder-mismatch warning. `build/` and `dist/` are git-ignored.
+- The release asset must **always** be named exactly
+  `vendor-analytics-pro-for-hivepress.zip` (no version in the file name), or the
+  permanent link above breaks.
