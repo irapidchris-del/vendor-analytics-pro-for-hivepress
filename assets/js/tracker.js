@@ -22,12 +22,47 @@
 		}
 	}
 
+	// Remember the search that produced this page for half an hour, so the
+	// listing a visitor opens next can be credited to it.
+	if ( cfg.term ) {
+		try {
+			sessionStorage.setItem( 'hpvaTerm', JSON.stringify( { t: cfg.term, ts: Date.now() } ) );
+		} catch ( e ) {
+			// Private mode; search clicks simply go unrecorded.
+		}
+	}
+
+	function recentSearch() {
+		try {
+			var stored = JSON.parse( sessionStorage.getItem( 'hpvaTerm' ) );
+
+			if ( ! stored || ! stored.t || Date.now() - stored.ts > 1800000 ) {
+				return '';
+			}
+
+			return stored.t;
+		} catch ( e ) {
+			return '';
+		}
+	}
+
 	function send( metric ) {
 		if ( isOwner() ) {
 			return;
 		}
 
-		var payload = JSON.stringify( { m: metric, l: cfg.listing || 0, v: cfg.vendor || 0 } );
+		var data = { m: metric, l: cfg.listing || 0, v: cfg.vendor || 0 };
+
+		// Only a listing view can be attributed to a search.
+		if ( 'view' === metric ) {
+			var term = recentSearch();
+
+			if ( term ) {
+				data.t = term;
+			}
+		}
+
+		var payload = JSON.stringify( data );
 
 		// Old Chromium (~60-80, still alive in unupdated Android WebViews)
 		// threw a synchronous TypeError for sendBeacon with a JSON Blob, and
@@ -53,8 +88,9 @@
 		}
 	}
 
-	// One view per session per object.
-	if ( cfg.views ) {
+	// One view per session per object. A search results page carries no object
+	// of its own, so nothing is counted there.
+	if ( cfg.views && ( cfg.listing || cfg.vendor ) ) {
 		var key = 'hpvaV' + ( cfg.listing ? 'l' + cfg.listing : 'v' + cfg.vendor );
 
 		try {

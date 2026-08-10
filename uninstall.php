@@ -60,6 +60,7 @@ $hpva_options = [
 	'hp_vendor_analytics_earnings',
 	'hp_vendor_analytics_sections',
 	'hp_vendor_analytics_hide_statistics',
+	'hp_vendor_analytics_hide_dashboard',
 	// Removed in 1.6.0 but may exist on earlier installs.
 	'hp_vendor_analytics_benchmark',
 	'hp_vendor_analytics_retention',
@@ -71,8 +72,10 @@ foreach ( $hpva_options as $hpva_option ) {
 	delete_option( $hpva_option );
 }
 
-// Per-order "already recorded" and per-booking "already confirmed" flags.
+// Per-order "already recorded" flag and banked net, per-booking "already
+// confirmed" flag.
 delete_post_meta_by_key( '_hpva_recorded' );
+delete_post_meta_by_key( '_hpva_net' );
 delete_post_meta_by_key( '_hpva_confirmed' );
 
 // Per-vendor "already responded to this person" markers.

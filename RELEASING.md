@@ -31,6 +31,17 @@ update notice, a working "View version details" popup, and a one-click update.
    - `readme.txt` — `Stable tag:`
    - `readme.txt` — the top `== Changelog ==` entry
 2. Commit and merge to the default branch (`main`).
+
+   > ⚠️ **Push the source before you release — always.** The workflow also
+   > triggers on `release: published`, and it **rebuilds the zip from the repo
+   > source** and re-uploads it with `--clobber`. If you create a release while
+   > `main` is still on the previous version, the workflow overwrites whatever
+   > zip you attached with a freshly built one from the *stale* source — every
+   > updating site then gets old code under the new version number, which the
+   > updater treats as up to date. The plugin folder in a WordPress install is
+   > not a git clone, so a local check for `.github/` will wrongly report "no
+   > workflow". The order is non-negotiable: **source to `main` first, release
+   > second.**
 3. **Publish the release.** The tag must equal the header version (prefixed with
    `v`, e.g. `v1.5.1`). Two equivalent ways:
 
