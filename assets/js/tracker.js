@@ -29,9 +29,20 @@
 
 		var payload = JSON.stringify( { m: metric, l: cfg.listing || 0, v: cfg.vendor || 0 } );
 
-		if ( navigator.sendBeacon ) {
-			navigator.sendBeacon( cfg.endpoint, new Blob( [ payload ], { type: 'application/json' } ) );
-		} else if ( window.fetch ) {
+		// Old Chromium (~60-80, still alive in unupdated Android WebViews)
+		// threw a synchronous TypeError for sendBeacon with a JSON Blob, and
+		// an uncaught throw here would kill the whole script including the
+		// click listener below. Catch and fall through to fetch; also fall
+		// through when sendBeacon reports its queue is full (returns false).
+		try {
+			if ( navigator.sendBeacon && navigator.sendBeacon( cfg.endpoint, new Blob( [ payload ], { type: 'application/json' } ) ) ) {
+				return;
+			}
+		} catch ( e ) {
+			// Fall through to fetch.
+		}
+
+		if ( window.fetch ) {
 			fetch( cfg.endpoint, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },

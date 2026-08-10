@@ -4,7 +4,7 @@ Tags: hivepress, analytics, statistics, marketplace, vendors
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.5.1
+Stable tag: 1.6.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -33,9 +33,61 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 * View counting requires JavaScript. If you delay JS with a performance plugin, exclude `hpva` / `tracker.js` from the delay for immediate counting.
 * The tracking endpoint is public by design (cached pages cannot carry fresh nonces); it is protected by a strict metric whitelist, server-side vendor resolution, bot filtering and per-IP rate limiting. Treat counts as best-effort visitor metrics, not audited analytics.
 * Vendors' own visits are excluded via a browser flag set when they open their Analytics page - other devices they have never opened it on will count.
-* Earnings reflect each vendor's payout after Marketplace commission (net of refunds and, where the site excludes them, taxes - the same figure as their Marketplace balance). Orders and earnings are recorded once, when an order is paid (Marketplace settles most orders on "processing" and downloadable ones on "completed" - both are counted). Later refunds or cancellations are not retroactively subtracted.
+* Message counts and response times need the Messages extension's "Store messages" setting switched on. With storage off, messages travel by email only, so there is nothing to count.
+* If you use a page caching plugin, purge its cache after activating or updating this plugin, or visitors may be served older copies of your pages without the tracking code for a while.
+* Earnings reflect each vendor's payout after Marketplace commission, mirroring the figure on their Marketplace balance screen - including or excluding taxes according to the site's own Marketplace "include taxes" setting. Orders and earnings are recorded once, when an order is paid (Marketplace settles most orders on "processing" and downloadable ones on "completed" - both are counted). Later refunds or cancellations are not retroactively subtracted, and the Earnings card says so; Marketplace's own Earnings screen does subtract refunds, so the two can legitimately differ after a refund.
+* Marketplace's aggregate screens (the Earnings dashboard's daily totals and the vendor Orders list) show gross order totals; only its per-order view shows the net figure. This plugin's Earnings are always net, so on commission-charging sites they will not match those two gross screens - by design on both sides.
 
 == Changelog ==
+
+= 1.6.4 =
+* Fixed: hiding the Statistics tab now also hides the Stats button on the My Listings cards - both routes led to the same page, so hiding one without the other made the setting a half-measure. The setting's wording now says so.
+
+= 1.6.3 =
+* Fixed: on each listing's Statistics page, the plugin's "Last 90 days" summary appeared above the navigation tabs, pushing them down the page. The tabs now come first, then the summary, then the Google Analytics chart.
+* Added: the per-listing breakdown is now a ranking - listings are ordered by views for the selected period, best performer first, with position numbers, on the dashboard, in the report and in the CSV (which gains a Rank column).
+* Added: a "Statistics tab" setting (shown only while the official Statistics extension is active) lets site admins hide that extension's tab on listings, since the Analytics tab covers the same ground. The extension itself is untouched.
+
+= 1.6.2 =
+* Fixed: on phones, the per-listing breakdown no longer cuts off its right-hand columns. Each listing now stacks as its own block with labelled figures that wrap to fit the screen, in both the dashboard and the downloadable report; printing the report keeps the full table.
+
+= 1.6.1 =
+* Fixed: the per-listing Analytics tab no longer appears to visitors and other vendors on public listing pages (it led nowhere for them; figures were never exposed). It now shows only to the listing's owner, exactly like the Edit tab.
+* Added: the Earnings card notes that figures are recorded when an order is paid and refunds are not deducted, so it no longer silently disagrees with Marketplace's own Earnings screen after a refund.
+* Fixed: the admin-only diagnostics comment now also appears when an administrator who is not a vendor opens the Analytics page - the exact situation the diagnostics exist for.
+
+= 1.6.0 =
+* Added: deleting the plugin now keeps your analytics and settings by default, so an accidental delete or a clean reinstall loses nothing. A new "Delete all data" setting (off by default, under Analytics settings) opts in to a full wipe. WordPress's own delete screen always warns that data will be removed; unless that box is ticked, it is kept.
+* Fixed: a PHP warning ("Array to string conversion") appeared on every page load on sites running HivePress without any premium extension, caused by the way the plugin registers itself with HivePress. Registration now sidesteps the core code path responsible.
+* Fixed: the Analytics pages could show "not found" on a brand-new install until something else refreshed the site's permalinks; activation now refreshes them itself.
+* Fixed: update checks no longer send your site's address and WordPress version to GitHub; the request now identifies itself as the plugin alone.
+* Fixed: site names containing characters such as "&" now display correctly in the CSV export and downloadable report instead of showing "&amp;".
+* Changed: the report and CSV download buttons now use your theme's own button styling instead of the plugin's, so they match the rest of your site on every theme.
+* Fixed: the Analytics tab was missing from each listing's manage menu (the page itself worked when reached from the account dashboard). It now appears alongside Edit and Statistics as intended.
+* Fixed: deleting a listing no longer floods "Favourites removed" with one entry per favourite the listing had; only a person unfavouriting counts.
+* Fixed: listings that were deleted after collecting data showed as blank rows in the per-listing breakdown; they are now labelled "(deleted listing)".
+* Fixed: the Analytics menu item stays highlighted when switching periods.
+* Fixed: the category benchmark now measures your side and the category side over the same listings, so the comparison is fair; previously views from since-deleted listings could inflate your average.
+* Fixed: the very first "Avg first response" figure no longer shows a red "worse" badge; first-ever data is neutral.
+* Fixed: response times stay accurate on sites where the Messages extension deletes old messages after a storage period.
+* Fixed: the CSV export shows listing names and change percentages cleanly in Excel and Google Sheets (no stray apostrophes or HTML character codes).
+* Fixed: search recording now has the same per-visitor rate limit as view tracking, and malformed tracking requests can no longer write warnings to the site's error log.
+* Fixed: translations saved into the plugin's own languages folder (Loco Translate's "Author" location) now load; previously only the system location worked.
+* Changed: the settings screen has one "Category benchmark" switch instead of two identical ones; the entry under "Visible sections" is now the single control.
+* Changed: daily data housekeeping keeps running even while HivePress is temporarily deactivated.
+* Changed: the "requires HivePress" notice can now be dismissed.
+
+= 1.5.2 =
+* Fixed: importing content no longer registers as customer activity. A WordPress or HivePress import fires the same events as real visits and bookings, so migrating a site could fill a vendor's analytics with figures dated to the day of the import.
+* Fixed: search impressions were never recorded for featured listings. When "featured listings per page" is enabled, HivePress serves featured results from a separate query, so a search whose matches were all featured recorded nothing at all; featured results are now counted alongside regular ones.
+* Fixed: views were also counted on account-side pages that carry a listing or vendor context (for example the listing edit and renew screens), which inflated a vendor's own figures until they first opened their Analytics page. The tracking beacon now loads only on public listing and vendor profile pages.
+* Fixed: a confirmed booking that was cancelled and later restored (or re-published) was counted as confirmed twice; each booking is now counted once.
+* Fixed: the "All time" period now also covers search-term data recorded before the first daily metric.
+* Fixed: the update check cache is now removed on uninstall.
+* Changed: the tracker script version now includes the file modification time, so browsers always fetch the current script after an update instead of a stale cached copy.
+* Changed: CSV exports pass the CSV escape parameter explicitly, avoiding a deprecation notice on PHP 8.4.
+* Changed: recording a vendor's first reply now reads the conversation in a single database query instead of two, halving the work done when a message is sent.
+* Changed: the Data settings section now explains where figures are stored.
 
 = 1.5.1 =
 * Changed: the GitHub auto-updater is now a self-contained implementation built on WordPress's native update API (the "Update URI" header and the update_plugins_github.com filter), with no bundled third-party library - a smaller footprint with the same behaviour.

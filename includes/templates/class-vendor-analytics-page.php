@@ -26,6 +26,11 @@ class Vendor_Analytics_Page extends User_Account_Page {
 	 * @param array<string, mixed> $args Template arguments.
 	 */
 	public function __construct( $args = [] ) {
+		// merge_trees, not merge_blocks, is correct here. A template subclass
+		// declares its tree before the parent constructor contributes the
+		// account-page chrome, so 'page_content' does not exist in $args yet -
+		// merge_blocks would find no match and silently discard the block.
+		// merge_blocks is for the template filters, where the tree is complete.
 		$args = hp\merge_trees(
 			[
 				'blocks' => [

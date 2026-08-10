@@ -27,6 +27,9 @@ class Listing_Analytics_Page extends Listing_Manage_Page {
 	 * @param array<string, mixed> $args Template arguments.
 	 */
 	public function __construct( $args = [] ) {
+		// merge_trees, not merge_blocks: the parent constructor has not yet
+		// added 'page_content' to $args, so merge_blocks would match nothing
+		// and silently drop the block. See Vendor_Analytics_Page.
 		$args = hp\merge_trees(
 			[
 				'blocks' => [
