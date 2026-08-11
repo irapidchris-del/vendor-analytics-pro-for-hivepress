@@ -2782,42 +2782,37 @@ function hpva_card( $label, $value, $note = '', $delta = null, $invert = false, 
 	$html .= '</span>';
 
 	// $collapsible stays false unless a caller asks for the icon, and the
-	// downloadable report depends on that default. The report is read as a
-	// PDF, where a closed disclosure cannot be opened by anybody, so a note
-	// hidden there is a note nobody can ever read. When one of the two
-	// surfaces is paper, the only safe way to fail is towards "the words are
-	// on the page". Never flip this default.
+	// downloadable report depends on that default. A hover tooltip is nothing
+	// at all on paper, so a note tucked into one there is a note nobody can
+	// ever read. When one of the two surfaces is a PDF, the only safe way to
+	// fail is towards "the words are on the page". Never flip this default.
 	if ( $note && $collapsible ) {
 
-		// A native disclosure, not a hover tooltip. Nothing enqueues
-		// JavaScript on the account page, and a CSS-only hover tooltip never
-		// opens for a finger and cannot be dismissed with Escape. The browser
-		// supplies the button role, the open state and Enter/Space here, so
-		// this needs no ARIA of our own and has no state that can go stale.
+		// Styled after HivePress's own admin tooltip (hp-tooltip in
+		// backend.less): a muted mark that brightens on hover, revealing a
+		// dark bubble to its left. The class names are ours because that CSS
+		// is loaded only in wp-admin, so the look has to be restated here
+		// rather than reused, and render_tooltip() is a protected method on
+		// the Admin component in any case. Core's icon is a dashicon, which
+		// is also admin-only, so this uses the Font Awesome 5 solid set that
+		// core enqueues site-wide. fa-info-circle is the FA 5 name; the FA 6
+		// name fa-circle-info does not exist in it.
 		//
-		// Core's own tooltip cannot be reused: render_tooltip() is a protected
-		// method on the Admin component, its CSS lives in backend.less which
-		// never loads on the front end, and it hides itself below 782px. On
-		// this card the note is the only explanation there is, so hiding it on
-		// phones would destroy the information.
-		$html .= '<details class="hpva-card__about">';
+		// The label becomes a flex row so the mark sits beside the text
+		// instead of after it. A long label such as "Avg first response"
+		// wraps to two lines in a narrow card, and as an inline element the
+		// mark was landing alone on a third line and making that card taller
+		// than its neighbours.
+		$html .= '<span class="hp-meta hpva-card__label hpva-card__label--tip">' . esc_html( $label );
 
-		// The label goes inside the summary deliberately. The accessible name
-		// is then computed from the summary's own text, which every browser
-		// does identically, and the target becomes the whole label row rather
-		// than a 14px glyph. It also avoids a new translatable string: a
-		// suffix such as "(what this means)" would have to be assembled around
-		// an already-translated label, which no translator can reorder.
-		$html .= '<summary class="hp-meta hpva-card__label">' . esc_html( $label );
-
-		// Decorative: the icon says nothing the note does not, and some screen
-		// readers otherwise read the icon font's private-use character aloud
-		// as a stray symbol. fa-info-circle is the Font Awesome 5 name (core
-		// enqueues FA 5.13.1 solid site-wide); the FA 6 name fa-circle-info
-		// does not exist in it.
-		$html .= ' <i class="fas fa-info-circle hpva-card__icon" aria-hidden="true"></i></summary>';
-		$html .= '<span class="hpva-card__note">' . esc_html( $note ) . '</span>';
-		$html .= '</details>';
+		// tabindex makes the mark reachable by keyboard, which a hover-only
+		// tooltip otherwise is not; :focus-within reveals the bubble. Core's
+		// admin tooltip does not do this, but it costs nothing and the note
+		// is the only explanation the card carries.
+		$html .= '<span class="hpva-tooltip" tabindex="0">';
+		$html .= '<i class="fas fa-info-circle hpva-tooltip__icon" aria-hidden="true"></i>';
+		$html .= '<span class="hpva-tooltip__text">' . esc_html( $note ) . '</span>';
+		$html .= '</span></span>';
 
 		return $html . '</div>';
 	}
@@ -2948,18 +2943,25 @@ function hpva_render_dashboard() {
 			}
 		}
 
-		// The last two arguments read alike and are easy to swap: $invert
-		// first (a smaller refund or response time is good news), then
-		// $collapsible, which puts this card's note behind its information
-		// icon. Only this dashboard passes the sixth argument; the
-		// downloadable report deliberately does not.
+		// Refunded and Net earnings read for themselves. Earnings does not:
+		// it is the vendor's share after commission, while Marketplace's own
+		// vendor Dashboard charts the full order value and calls it Revenue
+		// (blocks/class-vendor-statistics.php:100 sums get_order_total(), we
+		// sum get_order_profit()). Someone comparing the two screens finds a
+		// gap with nothing on the page to explain it, so this one keeps a
+		// mark. The wording avoids naming a screen, because the Dashboard can
+		// be switched off from our own settings tab.
 		if ( $orders || $earnings ) {
 			$out .= hpva_card( __( 'Orders completed', 'hivepress-vendor-analytics' ), number_format_i18n( $orders ), '', $d( 'order' ) );
-			$out .= hpva_card( __( 'Earnings', 'hivepress-vendor-analytics' ), hpva_money( $earnings ), __( 'Banked when each order was paid', 'hivepress-vendor-analytics' ), $d( 'earning_minor' ), false, true );
-			$out .= hpva_card( __( 'Refunded', 'hivepress-vendor-analytics' ), hpva_money( $refunds ), __( 'Your share of anything refunded since', 'hivepress-vendor-analytics' ), $d( 'refund_minor' ), true, true );
-			$out .= hpva_card( __( 'Net earnings', 'hivepress-vendor-analytics' ), hpva_money( max( 0, $earnings - $refunds ) ), __( 'Earnings after refunds', 'hivepress-vendor-analytics' ), null, false, true );
+			$out .= hpva_card( __( 'Earnings', 'hivepress-vendor-analytics' ), hpva_money( $earnings ), __( 'What you keep after commission, counted when each order is paid. Totals elsewhere on the site may show the full order value, which is higher.', 'hivepress-vendor-analytics' ), $d( 'earning_minor' ), false, true );
+			$out .= hpva_card( __( 'Refunded', 'hivepress-vendor-analytics' ), hpva_money( $refunds ), '', $d( 'refund_minor' ), true );
+			$out .= hpva_card( __( 'Net earnings', 'hivepress-vendor-analytics' ), hpva_money( max( 0, $earnings - $refunds ) ) );
 		}
 
+		// The one figure that genuinely is not self-explanatory: "49 min"
+		// says nothing about what was measured from what. The last two
+		// arguments read alike and are easy to swap: $invert first (a shorter
+		// response time is good news), then $collapsible.
 		if ( $resp_n > 0 ) {
 			$prev_avg  = ( isset( $prev['response_count'] ) && $prev['response_count'] > 0 ) ? $prev['response_sum'] / $prev['response_count'] : 0;
 			$avg_delta = ( 0 !== $period ) ? hpva_delta( $resp_sum / $resp_n, $prev_avg ) : null;
@@ -3533,7 +3535,10 @@ function hpva_css() {
 		// reach thirty-odd characters) spills out of the card instead of
 		// widening the track. This closes that on every card, not just the
 		// four that gain an icon.
-		. '.hpva-card{padding:1rem;border:1px solid rgba(7,36,86,.075);border-radius:3px;box-shadow:0 2px 4px 0 rgba(7,36,86,.075);background:#fff;display:flex;flex-direction:column;gap:.15rem;overflow-wrap:break-word}'
+		// position:relative makes the card the containing block for its
+		// tooltip bubble (see below). No z-index, so no stacking context is
+		// created and nothing else on the page changes layer.
+		. '.hpva-card{position:relative;padding:1rem;border:1px solid rgba(7,36,86,.075);border-radius:3px;box-shadow:0 2px 4px 0 rgba(7,36,86,.075);background:#fff;display:flex;flex-direction:column;gap:.15rem;overflow-wrap:break-word}'
 		. '.hpva-card__value{font-size:1.35em;font-weight:700}'
 		// Card labels, subtitles and the empty state carry core's hp-meta class
 		// for their muted look. The note names its own colour instead: hp-meta
@@ -3543,46 +3548,41 @@ function hpva_css() {
 		// something a vendor has deliberately opened. #4a5568 is about 7.5:1
 		// and is already the plugin's muted ink (period pills, flat deltas).
 		. '.hpva-card__note{font-size:.72em;color:#4a5568}'
-		// Four of the twelve cards carry a note, and a native <details> keeps
-		// it out of the grid until it is asked for. Everything stays in normal
-		// document flow: there is no absolutely positioned panel to push a
-		// 180px card off the side of a 390px phone, and no hover dependency,
-		// so a finger reaches it exactly as a mouse does.
+		// A flex row so the mark sits beside the label text rather than after
+		// it. "Avg first response" wraps to two lines in a narrow card, and an
+		// inline mark was dropping onto a third line of its own and making
+		// that card taller than the ones beside it. align-items:flex-start
+		// keeps the mark level with the first line when the text wraps.
+		. '.hpva-card__label--tip{display:flex;align-items:flex-start;gap:.35em}'
+		// Values copied from core's admin tooltip (hp-tooltip in
+		// backend.less), which is not loaded on the front end and so has to be
+		// restated rather than reused. Same muted mark at half opacity, same
+		// dark bubble to its left, same 782px cut-off.
+		. '.hpva-tooltip{flex:0 0 auto;cursor:help;line-height:1}'
+		. '.hpva-tooltip__icon{color:#82878c;opacity:.5;font-size:1.1em}'
+		. '.hpva-tooltip:hover .hpva-tooltip__icon,.hpva-tooltip:focus-within .hpva-tooltip__icon{opacity:1}'
+		// The bubble hangs off the CARD, not off the mark, which is why
+		// .hpva-tooltip itself is not positioned. Core's admin tooltip opens
+		// leftwards from its mark because it sits at the end of a wide table
+		// row and has the room; inside a 180px card the same rule put the
+		// bubble straight over the card's own label and hung it off the left
+		// edge. Anchored to the card and stretched left:0/right:0 it can only
+		// ever be exactly as wide as the card it explains, so it cannot
+		// overflow the page at any width and needs no RTL handling.
 		//
-		// The padding gives a target about 30px tall across the full card
-		// width, and the matching negative margins keep the card exactly as
-		// tall as the cards with no note, so labels in a row stay aligned.
-		. '.hpva-card__about>summary{display:block;padding:.35rem 0;margin:-.35rem 0;cursor:pointer;list-style:none}'
-		// Safari draws its disclosure triangle through this pseudo-element
-		// even when list-style is none.
-		. '.hpva-card__about>summary::-webkit-details-marker{display:none}'
-		// Colour named, never inherited. Inside a summary carrying hp-meta,
-		// currentColor is rgba(15,23,39,.45), which composites to about 2.97:1
-		// on the white card - below the 3:1 a control's affordance needs, and
-		// this icon is the only affordance the feature has. margin-inline-start
-		// rather than margin-left so the gap lands on the correct side in RTL.
-		. '.hpva-card__icon{margin-inline-start:.35em;font-size:1.1em;color:#4a5568}'
-		. '.hpva-card__about>summary:hover .hpva-card__icon,.hpva-card__about[open]>summary .hpva-card__icon{color:#2d3748}'
-		// Scoped with .hpva to reach (0,3,1). Every theme ships the
-		// focus-visible polyfill, whose ".js-focus-visible :focus:not(.focus-visible){outline:0}"
-		// is (0,3,0); an unscoped rule here would lose and the ring would
-		// vanish with no error and no failing test.
-		. '.hpva .hpva-card__about>summary:focus{outline:2px solid #4a5568;outline-offset:2px;border-radius:2px}'
-		// A browser without :focus-visible drops this rule as invalid and keeps
-		// the ring on every focus, which is the safe way to fail.
-		. '.hpva .hpva-card__about>summary:focus:not(:focus-visible){outline:none}'
-		// The note is a span; give it a block box so the gap above it is ours
-		// to set. Scoped inside the disclosure, so the plain inline note on
-		// the report is untouched.
-		. '.hpva-card__about>.hpva-card__note{display:block;margin-top:.2rem}'
-		// A closed disclosure cannot be forced open by any author rule - the
-		// browser hides its content through the UA shadow tree - so an
-		// "@media print{display:block}" here would look like a safety net
-		// while doing nothing. Ctrl+P on this page will not print a note the
-		// vendor has not opened; the Download report button is the supported
-		// route to a PDF and it prints all of them. All that is worth doing
-		// here is dropping the icon, which means nothing on paper.
-		. '@media print{.hpva-card__icon{display:none}}'
+		// Sized in rem, not em: the bubble sits inside a label already reduced
+		// to 80% by hp-meta, so an em size would compound to about 10px. The
+		// transform and spacing resets stop a theme's uppercased card label
+		// from being inherited by the sentence inside the bubble.
+		. '.hpva-tooltip__text{display:none;position:absolute;z-index:1000;left:0;right:0;top:calc(100% + 6px);padding:.5em 10px;font-size:.8rem;line-height:1.4em;font-weight:400;text-transform:none;letter-spacing:normal;text-align:left;background:rgba(0,0,0,.75);color:#fff;border-radius:2px}'
+		. '.hpva-tooltip__text::after{content:" ";display:block;border:4px solid transparent;border-bottom-color:rgba(0,0,0,.75);position:absolute;left:1rem;top:-8px}'
+		. '.hpva-tooltip:hover .hpva-tooltip__text,.hpva-tooltip:focus-within .hpva-tooltip__text{display:block}'
+		// Hidden on phones exactly as core hides its own, at the same
+		// breakpoint. A hover tooltip has no meaning on a touchscreen, and the
+		// figures these mark are self-explanatory enough to live without it;
+		// the downloadable report carries the wording in full either way.
+		. '@media screen and (max-width:782px){.hpva-tooltip{display:none}}'
+		. '@media print{.hpva-tooltip{display:none}}'
 		// hp-section__title supplies the bottom gap; only the gap between
 		// stacked dashboard sections is ours.
 		. '.hpva-h{margin-top:1.75rem}'
@@ -3973,7 +3973,7 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0 ) {
 
 		if ( ! $listing_id && ( $orders || $earnings ) ) {
 			$out .= hpva_card( __( 'Orders completed', 'hivepress-vendor-analytics' ), number_format_i18n( $orders ), '', $d( 'order' ) );
-			$out .= hpva_card( __( 'Earnings', 'hivepress-vendor-analytics' ), hpva_money( $earnings ), __( 'Banked when each order was paid', 'hivepress-vendor-analytics' ), $d( 'earning_minor' ) );
+			$out .= hpva_card( __( 'Earnings', 'hivepress-vendor-analytics' ), hpva_money( $earnings ), __( 'What you keep after commission, counted when each order is paid. Totals elsewhere on the site may show the full order value, which is higher.', 'hivepress-vendor-analytics' ), $d( 'earning_minor' ) );
 			$out .= hpva_card( __( 'Refunded', 'hivepress-vendor-analytics' ), hpva_money( $refunds ), __( 'Your share of anything refunded since', 'hivepress-vendor-analytics' ), $d( 'refund_minor' ), true );
 			$out .= hpva_card( __( 'Net earnings', 'hivepress-vendor-analytics' ), hpva_money( max( 0, $earnings - $refunds ) ), __( 'Earnings after refunds', 'hivepress-vendor-analytics' ) );
 		}
