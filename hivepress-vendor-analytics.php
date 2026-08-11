@@ -3,7 +3,7 @@
  * Plugin Name: Vendor Analytics Pro for HivePress
  * Plugin URI: https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress
  * Description: A first-party analytics dashboard for HivePress vendors - views, phone/email click tracking, messages, bookings funnel, earnings, response-time trends, search terms and category benchmarks, stored as daily aggregates with no third-party services.
- * Version: 1.7.0
+ * Version: 1.7.1
  * Author: ChrisB
  * Author URI: https://community.hivepress.io/u/chrisb/summary
  * Requires Plugins: hivepress
@@ -43,7 +43,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'HPVA_VERSION', '1.7.0' );
+define( 'HPVA_VERSION', '1.7.1' );
 define( 'HPVA_DB_VERSION', '2' );
 define( 'HPVA_FILE', __FILE__ );
 

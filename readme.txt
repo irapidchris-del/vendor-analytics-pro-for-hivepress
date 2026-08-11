@@ -4,7 +4,7 @@ Tags: hivepress, analytics, statistics, marketplace, vendors
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,12 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 
 == Changelog ==
 
+= 1.7.1 =
+* Changed: the card explanations now work like HivePress's own settings tooltips. A small information mark beside the label shows the detail on hover, rather than the click-to-open panel 1.7.0 introduced, and like HivePress's tooltips it is hidden on phones.
+* Changed: only Earnings and Avg first response keep an explanation now. Refunded and Net earnings read for themselves, so the grid is quieter.
+* Changed: the Earnings wording says plainly that the figure is your share after commission, and that totals elsewhere on the site show the full order value and so read higher. That gap had nothing on the page to explain it.
+* Fixed: the explanation text is no longer set in faint grey on the downloadable report, where it could come out close to unreadable once printed.
+
 = 1.7.0 =
 * Added: refunds are now tracked. The earnings section shows three figures side by side - what was banked when orders were paid, how much has been refunded since, and the net of the two - so it no longer disagrees with your Marketplace balance after a refund.
 * Added: the search terms table now shows clicks as well as impressions, so vendors can see which searches actually led someone to open a listing rather than just scroll past it.
@@ -49,7 +55,7 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 * Changed: the conversion funnel now says what each percentage is measuring ("0.7% of views", "48% of messages") and carries a one-line explanation, instead of leaving a bare percentage to be puzzled over.
 * Changed: the "Avg first response" figure now says what it measures - the time from a customer's first message to the vendor's first reply.
 * Changed: section descriptions are set in normal body text rather than small print, which was hard to read on a phone. Small type is kept for table headers and card labels.
-* Changed: the summary cards have lost their small print, so the grid reads cleanly. The two figures that needed explaining, Earnings and Avg first response, now carry a small information mark beside the label that shows the detail on hover, in the same style as HivePress's own settings tooltips. The Earnings wording also says plainly that it is the vendor's share after commission, so it no longer looks like it disagrees with the order totals shown elsewhere. The downloadable report spells every figure out in full.
+* Changed: the small print under the Earnings, Refunded, Net earnings and Avg first response cards now sits behind an information icon rather than on the card itself, so the summary grid reads cleanly. Click or tap the card's label to read the explanation, and click it again to put it away. The downloadable report still shows every explanation in full.
 
 = 1.6.4 =
 * Fixed: hiding the Statistics tab now also hides the Stats button on the My Listings cards - both routes led to the same page, so hiding one without the other made the setting a half-measure. The setting's wording now says so.
