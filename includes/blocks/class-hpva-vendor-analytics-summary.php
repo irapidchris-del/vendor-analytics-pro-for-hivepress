@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Vendor analytics summary block class.
  */
-class Vendor_Analytics_Summary extends Block {
+class Hpva_Vendor_Analytics_Summary extends Block {
 
 	/**
 	 * Renders block HTML.

@@ -4,7 +4,7 @@ Tags: hivepress, analytics, statistics, marketplace, vendors
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.7.1
+Stable tag: 1.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,8 +39,17 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 * Marketplace's aggregate screens (the vendor dashboard's daily totals and the Orders list) show gross order totals; only its per-order view shows the net figure. This plugin's earnings are always net of commission, so on commission-charging sites they will not match those two gross screens - by design on both sides.
 * Search term clicks are counted when someone opens a listing within half an hour of a search, in the same browsing session. It is a good guide to which searches work, not a forensic attribution: a visitor who wanders off and comes back later is not counted.
 * The information marks beside "Earnings" and "Avg first response" need a mouse, so like HivePress's own tooltips they are hidden on phones and do not print. The downloadable report states what both figures measure in plain text instead.
+* The monthly email goes out when the site's daily scheduled job runs on the first of the month. If scheduled jobs are not running on your site, it will not send; the same job also handles data retention. Site Health reports this as "A scheduled event is late".
+* The report button in the monthly email works for 90 days after the month it covers, then stops. Treat the link as private: anyone you forward it to can see that month's figures until it expires.
 
 == Changelog ==
+
+= 1.8.0 =
+* Added: a monthly summary email. On the first of each month vendors can be sent the figures for the month just gone, with a button that opens their full report for that month. Suggested by the community.
+* Added: the email is a normal HivePress email, so you can rewrite the subject and wording yourself under HivePress > Emails, using the tokens listed there.
+* Added: vendors choose for themselves on their account settings page whether to receive it, and whether to receive it in a month with no activity at all. Site owners set what a vendor gets before they have chosen, under HivePress > Settings > Analytics.
+* Added: the report button in the email carries a signed link, so it opens on any device without signing in, and cannot be edited to reach another vendor's figures or another month. It stops working 90 days after the month it covers.
+* Changed: every PHP class and file name now carries an "Hpva" prefix, as HivePress asks extension authors to do. This prevents a name clash with HivePress itself or a future official extension, which would otherwise stop one of the two loading with no error at all. If you have customised a template that referenced this plugin's blocks by name, they are now `hpva_vendor_analytics` and `hpva_vendor_analytics_summary`.
 
 = 1.7.1 =
 * Changed: the card explanations now work like HivePress's own settings tooltips. A small information mark beside the label shows the detail on hover, rather than the click-to-open panel 1.7.0 introduced, and like HivePress's tooltips it is hidden on phones.

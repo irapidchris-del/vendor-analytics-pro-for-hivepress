@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Vendor analytics controller class.
  */
-final class Vendor_Analytics extends Controller {
+final class Hpva_Vendor_Analytics extends Controller {
 
 	/**
 	 * Class constructor.
@@ -90,7 +90,7 @@ final class Vendor_Analytics extends Controller {
 	public function render_listing_analytics_page() {
 		return ( new Blocks\Template(
 			[
-				'template' => 'listing_analytics_page',
+				'template' => 'hpva_listing_analytics_page',
 
 				'context'  => [
 					'listing' => hivepress()->request->get_context( 'listing' ),
@@ -132,7 +132,7 @@ final class Vendor_Analytics extends Controller {
 	public function render_vendor_analytics_page() {
 		return ( new Blocks\Template(
 			[
-				'template' => 'vendor_analytics_page',
+				'template' => 'hpva_vendor_analytics_page',
 
 				'context'  => [
 					'vendor' => hivepress()->request->get_context( 'vendor' ),

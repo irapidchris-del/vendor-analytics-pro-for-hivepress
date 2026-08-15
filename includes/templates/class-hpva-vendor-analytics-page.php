@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Vendor analytics page template class.
  */
-class Vendor_Analytics_Page extends User_Account_Page {
+class Hpva_Vendor_Analytics_Page extends User_Account_Page {
 
 	/**
 	 * Class constructor.
@@ -36,8 +36,8 @@ class Vendor_Analytics_Page extends User_Account_Page {
 				'blocks' => [
 					'page_content' => [
 						'blocks' => [
-							'vendor_analytics' => [
-								'type'   => 'vendor_analytics',
+							'hpva_vendor_analytics' => [
+								'type'   => 'hpva_vendor_analytics',
 								'_order' => 10,
 							],
 						],

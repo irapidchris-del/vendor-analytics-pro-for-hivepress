@@ -3,7 +3,7 @@
  * Plugin Name: Vendor Analytics Pro for HivePress
  * Plugin URI: https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress
  * Description: A first-party analytics dashboard for HivePress vendors - views, phone/email click tracking, messages, bookings funnel, earnings, response-time trends, search terms and category benchmarks, stored as daily aggregates with no third-party services.
- * Version: 1.7.1
+ * Version: 1.8.0
  * Author: ChrisB
  * Author URI: https://community.hivepress.io/u/chrisb/summary
  * Requires Plugins: hivepress
@@ -43,7 +43,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'HPVA_VERSION', '1.7.1' );
+define( 'HPVA_VERSION', '1.8.0' );
 define( 'HPVA_DB_VERSION', '2' );
 define( 'HPVA_FILE', __FILE__ );
 
@@ -602,6 +602,13 @@ function hpva_init() {
 	add_action( 'woocommerce_order_status_completed', 'hpva_on_order_paid', 10, 1 );
 	add_action( 'woocommerce_order_refunded', 'hpva_on_order_refunded', 10, 2 );
 
+	// Monthly summary email: the vendor's own two controls on their account
+	// settings form, and the send itself on HivePress's daily event.
+	add_filter( 'hivepress/v1/forms/user_update', 'hpva_add_monthly_fields' );
+	add_filter( 'hivepress/v1/forms/user_update/errors', 'hpva_capture_monthly_choice', 10, 2 );
+	add_action( 'hivepress/v1/models/user/update', 'hpva_save_monthly_choice' );
+	add_action( 'hivepress/v1/events/daily', 'hpva_send_monthly_summaries' );
+
 	// Per-listing Analytics tab in the listing manage menu (mirrors the
 	// official Statistics extension's verified pattern).
 	add_filter( 'hivepress/v1/menus/listing_manage/items', 'hpva_listing_manage_menu_item', 100, 2 );
@@ -691,6 +698,40 @@ function hpva_register_settings( $settings ) {
 						],
 					],
 
+				],
+			],
+
+			'monthly'   => [
+				'title'       => __( 'Monthly report email', 'hivepress-vendor-analytics' ),
+				'description' => __( 'On the first of each month, vendors can be sent a summary of the month just gone, with a button that opens their full report. Each vendor chooses whether to receive it on their own account settings page; the two settings here decide what a vendor gets before they have chosen. Edit the wording under HivePress > Emails.', 'hivepress-vendor-analytics' ),
+				'_order'      => 15,
+
+				'fields'      => [
+					'vendor_analytics_monthly'         => [
+						'label'   => __( 'Monthly emails', 'hivepress-vendor-analytics' ),
+						'caption' => __( 'Send vendors a monthly summary of their analytics', 'hivepress-vendor-analytics' ),
+						'type'    => 'checkbox',
+						'default' => false,
+						'_order'  => 10,
+					],
+
+					'vendor_analytics_monthly_default' => [
+						'label'       => __( 'New vendors', 'hivepress-vendor-analytics' ),
+						'caption'     => __( 'Receive the monthly email unless they turn it off', 'hivepress-vendor-analytics' ),
+						'description' => __( 'Applies to vendors who have not yet made a choice on their own settings page. Leave this off to have vendors opt in themselves, which is the safer choice if you are unsure whether they expect email from you.', 'hivepress-vendor-analytics' ),
+						'type'        => 'checkbox',
+						'default'     => false,
+						'_order'      => 20,
+					],
+
+					'vendor_analytics_monthly_quiet'   => [
+						'label'       => __( 'Quiet months', 'hivepress-vendor-analytics' ),
+						'caption'     => __( 'Send the email even when there was no activity at all', 'hivepress-vendor-analytics' ),
+						'description' => __( 'A month with no views, messages, bookings or earnings produces a page of zeros. Vendors can override this on their own settings page.', 'hivepress-vendor-analytics' ),
+						'type'        => 'checkbox',
+						'default'     => false,
+						'_order'      => 30,
+					],
 				],
 			],
 
@@ -1589,16 +1630,39 @@ function hpva_enqueue_tracker() {
  *
  * @return void
  */
+/**
+ * Decides who may reach the export route.
+ *
+ * Two ways in, and only two. Normally it is cookie auth: WordPress
+ * authenticates the user when a valid _wpnonce (action wp_rest) accompanies the
+ * request, and without it the user is 0. The monthly summary email's button is
+ * the exception, because it is opened from a mail client with no session, often
+ * on a different device, so it carries a signed token instead and that
+ * signature IS the authorisation. It is verified here rather than waved through
+ * to the callback, so an unsigned or edited link never reaches any code that
+ * reads a vendor id from the request.
+ *
+ * @param WP_REST_Request $request Request object.
+ * @return bool
+ */
+function hpva_export_permission( $request ) {
+	$month = hpva_sanitise_month( $request->get_param( 'month' ) );
+	$token = $request->get_param( 'token' );
+
+	if ( $month || $token ) {
+		return hpva_verify_report_token( $request->get_param( 'vendor' ), $month, is_string( $token ) ? $token : '' );
+	}
+
+	return is_user_logged_in();
+}
+
 function hpva_register_rest() {
 	register_rest_route(
 		'hpva/v1',
 		'/export',
 		[
 			'methods'             => 'GET',
-			// Cookie auth: WordPress authenticates the user when a valid
-			// _wpnonce (action wp_rest) query parameter accompanies the
-			// request; without it the user is 0 and this check fails.
-			'permission_callback' => 'is_user_logged_in',
+			'permission_callback' => 'hpva_export_permission',
 			'callback'            => 'hpva_rest_export',
 		]
 	);
@@ -2382,8 +2446,8 @@ function hpva_inject_statistics_summary( $template ) {
 		[
 			'page_content' => [
 				'blocks' => [
-					'vendor_analytics_summary' => [
-						'type'   => 'vendor_analytics_summary',
+					'hpva_vendor_analytics_summary' => [
+						'type'   => 'hpva_vendor_analytics_summary',
 						'_order' => 15,
 					],
 				],
@@ -3178,6 +3242,30 @@ function hpva_csv_field( $value ) {
  * @return WP_REST_Response
  */
 function hpva_rest_export( $request ) {
+	$month = hpva_sanitise_month( $request->get_param( 'month' ) );
+	$token = (string) $request->get_param( 'token' );
+
+	// The monthly email's button is opened from a mail client: no session, no
+	// nonce, and often a different device from the one the vendor logged in on.
+	// The signed token therefore has to carry the authorisation itself. It is
+	// checked before anything else so a valid token never depends on being
+	// logged in, and an invalid one never falls through to the cookie path with
+	// a vendor id an attacker chose.
+	if ( $token || $month ) {
+		if ( ! $month || ! hpva_verify_report_token( $request->get_param( 'vendor' ), $month, $token ) ) {
+			return new WP_REST_Response( [ 'error' => 'bad_token' ], 403 );
+		}
+
+		$vendor_id = (int) $request->get_param( 'vendor' );
+
+		nocache_headers();
+		header( 'Content-Type: text/html; charset=utf-8' );
+		header( 'X-Robots-Tag: noindex, nofollow', true );
+
+		echo hpva_report_html( $vendor_id, 30, 0, hpva_month_range( $month ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- complete standalone document, escaped at build time.
+		exit;
+	}
+
 	$user_id   = get_current_user_id();
 	$vendor_id = hpva_vendor_id_from_user( $user_id );
 
@@ -3851,13 +3939,16 @@ function hpva_report_css() {
  * honouring the admin's enabled sections and the same data conditions as the
  * dashboards. Opens in the browser; printing it produces a clean PDF.
  *
- * @param int $vendor_id  Vendor ID.
- * @param int $period     Period in days (0 for all time).
- * @param int $listing_id Optional listing scope.
+ * @param int                   $vendor_id  Vendor ID.
+ * @param int                   $period     Period in days (0 for all time).
+ * @param int                   $listing_id Optional listing scope.
+ * @param array{0:string,1:string}|null $range Optional explicit [ from, to ] dates, used by the
+ *                                             monthly email so the report covers a calendar month
+ *                                             rather than a rolling window.
  * @return string
  */
-function hpva_report_html( $vendor_id, $period, $listing_id = 0 ) {
-	list( $from, $to ) = hpva_range( $period );
+function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null ) {
+	list( $from, $to ) = $range ? $range : hpva_range( $period );
 
 	$chart_from = $from;
 
@@ -4317,4 +4408,359 @@ function hpva_report_csv_rows( $vendor_id, $period, $listing_id = 0 ) {
 	}
 
 	return $rows;
+}
+
+/*
+--------------------------------------------------------------------------
+Monthly summary email.
+--------------------------------------------------------------------------
+*/
+
+/**
+ * Normalises a month parameter to YYYY-MM, or an empty string when it is not a
+ * real month. Rejecting here means every caller downstream can treat the value
+ * as trusted.
+ *
+ * @param mixed $raw Raw month value.
+ * @return string
+ */
+function hpva_sanitise_month( $raw ) {
+	$month = is_scalar( $raw ) ? trim( (string) $raw ) : '';
+
+	if ( ! preg_match( '/^(\d{4})-(\d{2})$/', $month, $parts ) ) {
+		return '';
+	}
+
+	$year  = (int) $parts[1];
+	$index = (int) $parts[2];
+
+	if ( $index < 1 || $index > 12 || $year < 2000 || $year > 2100 ) {
+		return '';
+	}
+
+	return $month;
+}
+
+/**
+ * Gets the first and last dates of a calendar month.
+ *
+ * @param string $month Month as YYYY-MM.
+ * @return array{0:string,1:string}
+ */
+function hpva_month_range( $month ) {
+	$first = $month . '-01';
+
+	return [ $first, gmdate( 'Y-m-t', strtotime( $first . ' UTC' ) ) ];
+}
+
+/**
+ * Signs a vendor's monthly report link.
+ *
+ * Stateless on purpose: nothing is stored, so there is no table to grow, no
+ * cleanup to schedule and nothing left behind when the plugin is removed. The
+ * signature covers the vendor and the month together, so a recipient cannot
+ * edit either one in the URL and reach somebody else's figures or a different
+ * period. wp_salt() keys it, which also means regenerating the site's salts
+ * invalidates every link ever issued, the emergency revocation should it ever
+ * be needed.
+ *
+ * @param int    $vendor_id Vendor ID.
+ * @param string $month Month as YYYY-MM.
+ * @return string
+ */
+function hpva_report_token( $vendor_id, $month ) {
+	return hash_hmac( 'sha256', 'hpva|' . (int) $vendor_id . '|' . $month, wp_salt( 'auth' ) );
+}
+
+/**
+ * Checks a monthly report link.
+ *
+ * Validity is derived from the month rather than carried in the URL, so there is
+ * no expiry parameter for anyone to edit: a link works for 90 days after the
+ * month it covers has ended, which is long enough for somebody who reads their
+ * email late and short enough that a forwarded link does not live forever.
+ *
+ * @param mixed  $vendor_id Vendor ID from the request.
+ * @param string $month Sanitised month as YYYY-MM.
+ * @param mixed  $token Token from the request.
+ * @return bool
+ */
+function hpva_verify_report_token( $vendor_id, $month, $token ) {
+	$vendor_id = (int) $vendor_id;
+
+	if ( $vendor_id <= 0 || ! $month || ! is_string( $token ) || ! $token ) {
+		return false;
+	}
+
+	list( , $last ) = hpva_month_range( $month );
+
+	if ( time() > strtotime( $last . ' 23:59:59 UTC' ) + 90 * DAY_IN_SECONDS ) {
+		return false;
+	}
+
+	// hash_equals, not a plain comparison, so a wrong token cannot be narrowed
+	// down by timing the response.
+	return hash_equals( hpva_report_token( $vendor_id, $month ), $token );
+}
+
+/**
+ * Builds the full report URL for the email button.
+ *
+ * @param int    $vendor_id Vendor ID.
+ * @param string $month Month as YYYY-MM.
+ * @return string
+ */
+function hpva_report_token_url( $vendor_id, $month ) {
+	return add_query_arg(
+		[
+			'month'  => $month,
+			'vendor' => (int) $vendor_id,
+			'token'  => hpva_report_token( $vendor_id, $month ),
+		],
+		rest_url( 'hpva/v1/export' )
+	);
+}
+
+/**
+ * Reads a vendor's own monthly email choice, falling back to the site owner's
+ * default.
+ *
+ * The meta is deliberately three-state: '1' and '0' are the vendor's own
+ * decision, and no meta at all means they have not chosen one, so the owner's
+ * default applies. Storing a plain boolean would collapse "no thanks" and
+ * "never asked" into the same value, and the owner's default would then
+ * silently switch an email back on for somebody who had turned it off.
+ *
+ * @param int    $user_id User ID.
+ * @param string $key Meta key.
+ * @param string $option Admin default option name.
+ * @return bool
+ */
+function hpva_monthly_choice( $user_id, $key, $option ) {
+	$stored = get_user_meta( $user_id, $key, true );
+
+	if ( '' === $stored ) {
+		return (bool) hpva_get_option( $option, false );
+	}
+
+	return '1' === $stored;
+}
+
+/**
+ * Adds the vendor's own monthly email controls to their account settings form.
+ *
+ * @param array $form Form arguments.
+ * @return array
+ */
+function hpva_add_monthly_fields( $form ) {
+	if ( ! hpva_get_option( 'vendor_analytics_monthly', false ) ) {
+		return $form;
+	}
+
+	$user_id = get_current_user_id();
+
+	if ( ! $user_id || ! hpva_vendor_id_from_user( $user_id ) ) {
+		return $form;
+	}
+
+	$form['fields']['hpva_monthly'] = [
+		'label'   => __( 'Monthly analytics email', 'hivepress-vendor-analytics' ),
+		'caption' => __( 'Email me a summary of my listings each month', 'hivepress-vendor-analytics' ),
+		'type'    => 'checkbox',
+		'default' => hpva_monthly_choice( $user_id, '_hpva_monthly', 'vendor_analytics_monthly_default' ),
+		'_order'  => 610,
+	];
+
+	$form['fields']['hpva_monthly_quiet'] = [
+		'label'   => __( 'Quiet months', 'hivepress-vendor-analytics' ),
+		'caption' => __( 'Send it even if there was no activity that month', 'hivepress-vendor-analytics' ),
+		'type'    => 'checkbox',
+		'default' => hpva_monthly_choice( $user_id, '_hpva_monthly_quiet', 'vendor_analytics_monthly_quiet' ),
+		'_order'  => 620,
+	];
+
+	return $form;
+}
+
+/**
+ * Holds the pending choice between validation and the model update.
+ *
+ * @param string|null $name Field name, or null to read everything back.
+ * @param string|null $value Value to record.
+ * @return array
+ */
+function hpva_pending_monthly_choice( $name = null, $value = null ) {
+	static $pending = [];
+
+	if ( null !== $name ) {
+		$pending[ $name ] = $value;
+	}
+
+	return $pending;
+}
+
+/**
+ * Records the vendor's choice while the settings form validates.
+ *
+ * Two traps are avoided here, both of which have shipped as real bugs in these
+ * plugins. An unticked checkbox is omitted from the request entirely, and the
+ * form layer sets every registered field to null for absent values, so the value
+ * alone cannot tell "unticked" from "not on this form": the field has to be
+ * detected by PRESENCE and a null then read as false. And the save itself must
+ * not happen during validation, because a current-password check runs afterwards
+ * and can still reject the whole submission, so the choice is applied from the
+ * model update action instead.
+ *
+ * @param array  $errors Validation errors.
+ * @param object $form Form object.
+ * @return array
+ */
+function hpva_capture_monthly_choice( $errors, $form ) {
+	if ( ! is_object( $form ) || ! method_exists( $form, 'get_fields' ) ) {
+		return $errors;
+	}
+
+	$fields = $form->get_fields();
+
+	foreach ( [ 'hpva_monthly', 'hpva_monthly_quiet' ] as $name ) {
+		if ( isset( $fields[ $name ] ) ) {
+			hpva_pending_monthly_choice( $name, $form->get_value( $name ) ? '1' : '0' );
+		}
+	}
+
+	return $errors;
+}
+
+/**
+ * Applies the recorded choice once the user has actually been saved.
+ *
+ * @param int $user_id User ID.
+ */
+function hpva_save_monthly_choice( $user_id ) {
+	foreach ( hpva_pending_monthly_choice() as $name => $value ) {
+		update_user_meta( (int) $user_id, '_' . $name, $value );
+	}
+}
+
+/**
+ * Sends the monthly summaries, on the first of the month.
+ *
+ * Hooked to HivePress's daily event rather than scheduled separately: core
+ * already registers hivepress/v1/events/daily on activation, and there is no
+ * monthly interval available to schedule (Scheduler::add_action only understands
+ * hourly, twicedaily, daily and weekly). These run on Action Scheduler rather
+ * than WP-Cron, so they never appear in WP-Crontrol.
+ */
+function hpva_send_monthly_summaries() {
+	if ( ! hpva_get_option( 'vendor_analytics_monthly', false ) ) {
+		return;
+	}
+
+	if ( '01' !== current_time( 'd' ) ) {
+		return;
+	}
+
+	// The month just gone, worked out in the site's own timezone so a site well
+	// ahead of UTC does not report on a month it is still in.
+	$month = gmdate( 'Y-m', strtotime( current_time( 'Y-m' ) . '-01 UTC' ) - DAY_IN_SECONDS );
+
+	// Guard against a second run for the same month: the daily event can fire
+	// more than once when Action Scheduler works through a backlog.
+	if ( get_option( 'hpva_monthly_sent' ) === $month ) {
+		return;
+	}
+
+	update_option( 'hpva_monthly_sent', $month, false );
+
+	list( $from, $to ) = hpva_month_range( $month );
+
+	$vendors = get_posts(
+		[
+			'post_type'      => 'hp_vendor',
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+		]
+	);
+
+	foreach ( $vendors as $vendor_id ) {
+		$user_id = (int) get_post_field( 'post_author', $vendor_id );
+
+		if ( ! $user_id ) {
+			continue;
+		}
+
+		if ( ! hpva_monthly_choice( $user_id, '_hpva_monthly', 'vendor_analytics_monthly_default' ) ) {
+			continue;
+		}
+
+		hpva_send_monthly_summary( (int) $vendor_id, $user_id, $month, $from, $to );
+	}
+}
+
+/**
+ * Sends one vendor's monthly summary.
+ *
+ * @param int    $vendor_id Vendor ID.
+ * @param int    $user_id User ID.
+ * @param string $month Month as YYYY-MM.
+ * @param string $from Start date.
+ * @param string $to End date.
+ * @return bool
+ */
+function hpva_send_monthly_summary( $vendor_id, $user_id, $month, $from, $to ) {
+	$user = get_userdata( $user_id );
+
+	if ( ! $user || ! $user->user_email ) {
+		return false;
+	}
+
+	$totals = hpva_totals_map( $vendor_id, $from, $to );
+
+	/**
+	 * @param string $key Metric key.
+	 * @return int
+	 */
+	$m = function ( $key ) use ( $totals ) {
+		return isset( $totals[ $key ] ) ? (int) $totals[ $key ] : 0;
+	};
+
+	$activity = $m( 'view' ) + $m( 'vendor_view' ) + $m( 'message' ) + $m( 'booking_confirmed' )
+		+ $m( 'order' ) + $m( 'earning_minor' ) + $m( 'phone_click' ) + $m( 'email_click' ) + $m( 'favorite' );
+
+	if ( ! $activity && ! hpva_monthly_choice( $user_id, '_hpva_monthly_quiet', 'vendor_analytics_monthly_quiet' ) ) {
+		return false;
+	}
+
+	// Instantiated directly rather than through hp\create_class_instance():
+	// this file is plain procedural code in the global namespace with no
+	// Helpers alias imported, so hp\... would resolve to \hp\... and fatal.
+	// The class_exists() guard is safe here because this only ever runs from
+	// HivePress's daily event, long after init, so the autoloader running the
+	// class's init() cannot trigger the too-early translation notices.
+	if ( ! class_exists( '\HivePress\Emails\Hpva_Analytics_Summary' ) ) {
+		return false;
+	}
+
+	$email = new \HivePress\Emails\Hpva_Analytics_Summary(
+		[
+			'recipient' => $user->user_email,
+
+			'tokens'    => [
+				'user_name'     => $user->display_name,
+				'vendor_name'   => get_the_title( $vendor_id ),
+				'period'        => date_i18n( 'F Y', strtotime( $from . ' UTC' ) ),
+				'listing_views' => number_format_i18n( $m( 'view' ) ),
+				'profile_views' => number_format_i18n( $m( 'vendor_view' ) ),
+				'messages'      => number_format_i18n( $m( 'message' ) ),
+				'bookings'      => number_format_i18n( $m( 'booking_confirmed' ) ),
+				'earnings'      => hpva_money( $m( 'earning_minor' ) ),
+				'report_url'    => hpva_report_token_url( $vendor_id, $month ),
+				'settings_url'  => hivepress()->router->get_url( 'user_edit_settings_page' ),
+				'user'          => $user_id,
+			],
+		]
+	);
+
+	return (bool) $email->send();
 }

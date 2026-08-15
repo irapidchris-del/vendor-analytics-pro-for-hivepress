@@ -61,6 +61,11 @@ $hpva_options = [
 	'hp_vendor_analytics_sections',
 	'hp_vendor_analytics_hide_statistics',
 	'hp_vendor_analytics_hide_dashboard',
+	'hp_vendor_analytics_monthly',
+	'hp_vendor_analytics_monthly_default',
+	'hp_vendor_analytics_monthly_quiet',
+	// Marker for the month the summaries last went out.
+	'hpva_monthly_sent',
 	// Removed in 1.6.0 but may exist on earlier installs.
 	'hp_vendor_analytics_benchmark',
 	'hp_vendor_analytics_retention',
@@ -78,8 +83,11 @@ delete_post_meta_by_key( '_hpva_recorded' );
 delete_post_meta_by_key( '_hpva_net' );
 delete_post_meta_by_key( '_hpva_confirmed' );
 
-// Per-vendor "already responded to this person" markers.
+// Per-vendor "already responded to this person" markers, and each vendor's own
+// monthly email choices.
 delete_metadata( 'user', 0, '_hpva_responded', '', true );
+delete_metadata( 'user', 0, '_hpva_monthly', '', true );
+delete_metadata( 'user', 0, '_hpva_monthly_quiet', '', true );
 
 // The consent flag goes last (see above).
 delete_option( 'hp_vendor_analytics_delete_data' );

@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Listing analytics page template class.
  */
-class Listing_Analytics_Page extends Listing_Manage_Page {
+class Hpva_Listing_Analytics_Page extends Listing_Manage_Page {
 
 	/**
 	 * Class constructor.
@@ -29,14 +29,14 @@ class Listing_Analytics_Page extends Listing_Manage_Page {
 	public function __construct( $args = [] ) {
 		// merge_trees, not merge_blocks: the parent constructor has not yet
 		// added 'page_content' to $args, so merge_blocks would match nothing
-		// and silently drop the block. See Vendor_Analytics_Page.
+		// and silently drop the block. See Hpva_Vendor_Analytics_Page.
 		$args = hp\merge_trees(
 			[
 				'blocks' => [
 					'page_content' => [
 						'blocks' => [
-							'vendor_analytics' => [
-								'type'   => 'vendor_analytics',
+							'hpva_vendor_analytics' => [
+								'type'   => 'hpva_vendor_analytics',
 								'_order' => 20,
 							],
 						],
