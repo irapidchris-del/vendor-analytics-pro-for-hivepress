@@ -3968,11 +3968,25 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null )
 		$chart_from = max( $from, $year_ago );
 	}
 
-	$scope = $listing_id ? $listing_id : null;
-	$cur   = hpva_totals_map( $vendor_id, $from, $to, $scope );
-	$prev  = [];
+	$scope      = $listing_id ? $listing_id : null;
+	$cur        = hpva_totals_map( $vendor_id, $from, $to, $scope );
+	$prev       = [];
+	$prev_label = '';
 
-	if ( 0 !== $period ) {
+	if ( $range ) {
+
+		// A calendar month must be compared with the whole previous CALENDAR
+		// month, not with an equal-length window. hpva_prev_range() counts back
+		// the same number of days, so 30-day June would be compared against
+		// 2 to 31 May and quietly drop 1 May, while 31-day August would line up
+		// with July exactly. That made the arrows right or wrong depending on
+		// the length of the month, which is the worst kind of wrong: correct
+		// often enough to look fine. Caught on staging, 2026-08-16.
+		list( $p_from, $p_to ) = hpva_month_range( gmdate( 'Y-m', strtotime( $from . ' UTC' ) - DAY_IN_SECONDS ) );
+
+		$prev       = hpva_totals_map( $vendor_id, $p_from, $p_to, $scope );
+		$prev_label = date_i18n( 'F Y', strtotime( $p_from . ' UTC' ) );
+	} elseif ( 0 !== $period ) {
 		list( $p_from, $p_to ) = hpva_prev_range( $from, $to );
 		$prev                  = hpva_totals_map( $vendor_id, $p_from, $p_to, $scope );
 	}
@@ -4037,7 +4051,13 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null )
 	if ( hpva_section_on( 'summary' ) ) {
 		$out .= '<h2 class="hpva-h2">' . esc_html__( 'Summary', 'hivepress-vendor-analytics' ) . '</h2>';
 
-		if ( 0 !== $period ) {
+		if ( $prev_label ) {
+			$out .= '<p class="hpva-sub">' . sprintf(
+				/* translators: %s: month and year, e.g. July 2026. */
+				esc_html__( 'Changes compare against %s.', 'hivepress-vendor-analytics' ),
+				esc_html( $prev_label )
+			) . '</p>';
+		} elseif ( 0 !== $period ) {
 			$out .= '<p class="hpva-sub">' . sprintf(
 				/* translators: %s: number of days. */
 				esc_html__( 'Changes compare against the previous %s days.', 'hivepress-vendor-analytics' ),
