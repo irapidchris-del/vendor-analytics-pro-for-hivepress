@@ -3856,8 +3856,19 @@ function hpva_breakdown_listing( $listing_id ) {
  * @param string $to     End date (Y-m-d).
  * @return string
  */
-function hpva_period_label( $period, $from, $to ) {
+function hpva_period_label( $period, $from, $to, $is_month = false ) {
 	$range = date_i18n( 'j M Y', strtotime( $from . ' UTC' ) ) . ' - ' . date_i18n( 'j M Y', strtotime( $to . ' UTC' ) );
+
+	// The monthly email's report covers a calendar month, and calling that
+	// "Last 30 days" is wrong twice over: it is not the last 30 days, and half
+	// of them are not 30 days long. Passed in rather than detected from the
+	// dates, because a genuine 30-day period viewed on the last day of a
+	// 30-day month would look identical to a calendar month and would then be
+	// mislabelled the other way.
+	if ( $is_month ) {
+		/* translators: 1: month and year, 2: date range. */
+		return sprintf( __( '%1$s (%2$s)', 'hivepress-vendor-analytics' ), date_i18n( 'F Y', strtotime( $from . ' UTC' ) ), $range );
+	}
 
 	if ( 0 === $period ) {
 		/* translators: %s: date range. */
@@ -4004,7 +4015,7 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null )
 	$out .= '<header class="hpva-report__head">';
 	$out .= '<p class="hpva-report__site">' . esc_html( hpva_site_name() ) . '</p>';
 	$out .= '<h1 class="hpva-report__title">' . esc_html( $subject ) . ' - ' . esc_html__( 'Analytics report', 'hivepress-vendor-analytics' ) . '</h1>';
-	$out .= '<p class="hpva-report__meta">' . esc_html( hpva_period_label( $period, $from, $to ) );
+	$out .= '<p class="hpva-report__meta">' . esc_html( hpva_period_label( $period, $from, $to, (bool) $range ) );
 
 	if ( $listing_id ) {
 		$out .= ' &middot; ' . esc_html__( 'This listing only', 'hivepress-vendor-analytics' );

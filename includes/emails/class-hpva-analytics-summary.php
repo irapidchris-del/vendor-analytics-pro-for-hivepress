@@ -75,15 +75,23 @@ class Hpva_Analytics_Summary extends Email {
 			[
 				'subject' => esc_html__( 'Your listings last month', 'hivepress-vendor-analytics' ),
 
-				// Email::boot() runs make_clickable() over the body, so the bare
-				// report URL becomes a link without any markup here.
+				// The report link is an anchor rather than the bare token every
+				// official HivePress email uses. Those link to a short, readable
+				// page URL, which reads fine inline; this one is a signed link
+				// over 150 characters long, and pasted raw it looks like spam.
+				// Core echoes the body unescaped (templates/email/email-content.php)
+				// so the markup renders, and make_clickable() leaves URLs that
+				// are already inside an anchor alone.
 				'body'    => esc_html__( 'Hi, %user_name%! Here is how your listings did in %period%.', 'hivepress-vendor-analytics' ) . "\n\n"
 					. esc_html__( 'Listing views: %listing_views%', 'hivepress-vendor-analytics' ) . "\n"
 					. esc_html__( 'Profile views: %profile_views%', 'hivepress-vendor-analytics' ) . "\n"
 					. esc_html__( 'Messages received: %messages%', 'hivepress-vendor-analytics' ) . "\n"
 					. esc_html__( 'Bookings confirmed: %bookings%', 'hivepress-vendor-analytics' ) . "\n"
 					. esc_html__( 'Earnings: %earnings%', 'hivepress-vendor-analytics' ) . "\n\n"
-					. esc_html__( 'Open your full report for the month, including your best performing listings and the searches that found you: %report_url%', 'hivepress-vendor-analytics' ) . "\n\n"
+					. esc_html__( 'Your full report for the month shows your best performing listings and the searches that found you.', 'hivepress-vendor-analytics' ) . "\n\n"
+					. '<a href="%report_url%" style="display:inline-block;padding:12px 22px;background:#4a5568;color:#ffffff;text-decoration:none;border-radius:3px;font-weight:600">'
+					. esc_html__( 'View my full report', 'hivepress-vendor-analytics' )
+					. '</a>' . "\n\n"
 					. esc_html__( 'To stop receiving this email, turn it off in your account settings: %settings_url%', 'hivepress-vendor-analytics' ),
 			],
 			$args
