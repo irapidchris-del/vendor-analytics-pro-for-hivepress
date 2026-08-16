@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-16T19:49:16+00:00\n"
+"POT-Creation-Date: 2026-08-16T20:35:32+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: hivepress-vendor-analytics\n"
@@ -774,42 +774,42 @@ msgstr ""
 msgid "Your listings last month"
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:85
+#: includes/emails/class-hpva-analytics-summary.php:98
 #, php-format
 msgid "Hi, %user_name%! Here is how your listings did in %period%."
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:86
+#: includes/emails/class-hpva-analytics-summary.php:100
 msgid "Listing views: %listing_views%"
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:87
+#: includes/emails/class-hpva-analytics-summary.php:101
 msgid "Profile views: %profile_views%"
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:88
+#: includes/emails/class-hpva-analytics-summary.php:102
 msgid "Messages received: %messages%"
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:89
+#: includes/emails/class-hpva-analytics-summary.php:103
 #, php-format
 msgid "Bookings confirmed: %bookings%"
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:90
+#: includes/emails/class-hpva-analytics-summary.php:104
 #, php-format
 msgid "Earnings: %earnings%"
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:91
+#: includes/emails/class-hpva-analytics-summary.php:106
 msgid "Your full report for the month shows your best performing listings and the searches that found you."
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:93
+#: includes/emails/class-hpva-analytics-summary.php:108
 msgid "View my full report"
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:95
+#: includes/emails/class-hpva-analytics-summary.php:110
 #, php-format
 msgid "To stop receiving this email, turn it off in your account settings: %settings_url%"
 msgstr ""
