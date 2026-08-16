@@ -62,6 +62,7 @@ $hpva_options = [
 	'hp_vendor_analytics_hide_statistics',
 	'hp_vendor_analytics_hide_dashboard',
 	'hp_vendor_analytics_monthly',
+	'hp_vendor_analytics_monthly_vendors',
 	'hp_vendor_analytics_monthly_default',
 	'hp_vendor_analytics_monthly_quiet',
 	// Marker for the month the summaries last went out.

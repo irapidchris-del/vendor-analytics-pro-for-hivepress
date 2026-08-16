@@ -4,7 +4,7 @@ Tags: hivepress, analytics, statistics, marketplace, vendors
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.8.0
+Stable tag: 1.8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,11 +41,16 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 * The information marks beside "Earnings" and "Avg first response" need a mouse, so like HivePress's own tooltips they are hidden on phones and do not print. The downloadable report states what both figures measure in plain text instead.
 * The "View my full report" button in the monthly email is a styled link. Outlook for Windows ignores the styling that makes it look like a button, so there it appears as bold dark text instead. It still works, and every other common mail client renders the button properly.
 * Editing the email under HivePress > Emails replaces the whole body, not just the subject. If you rewrite it, keep `%report_url%` somewhere or your vendors lose the link to their report.
-* The two monthly email controls only appear on a vendor's settings page while "Monthly emails" is switched on under HivePress > Settings > Analytics. With the feature off, vendors see nothing about it at all, which is intended: there is no point offering somebody a choice that cannot take effect.
+* The two monthly email controls only appear on a vendor's settings page while both "Monthly emails" and "Vendor choice" are switched on under HivePress > Settings > Analytics. With either off, vendors see nothing about it at all, which is intended: there is no point offering somebody a choice that cannot take effect.
+* Switching "Vendor choice" off means your settings govern every vendor, including any who had previously turned the email off for themselves. Their choice is remembered rather than deleted, and applies again the moment you switch vendor choice back on.
 * The monthly email goes out when the site's daily scheduled job runs on the first of the month. If scheduled jobs are not running on your site, it will not send; the same job also handles data retention. Site Health reports this as "A scheduled event is late".
 * The report button in the monthly email works for 90 days after the month it covers, then stops. Treat the link as private: anyone you forward it to can see that month's figures until it expires.
 
 == Changelog ==
+
+= 1.8.1 =
+* Added: a "Vendor choice" setting. Switch it off to keep the decision about the monthly email yourself: vendors then see nothing about it on their settings page, and your two settings apply to all of them. Any choices vendors already made are remembered and come back if you switch it on again.
+* Fixed: the "View version details" popup on the Plugins screen showed the release notes as raw text, with stray hashes and asterisks where the headings and bold type should have been. They are now rendered properly. Because the popup is drawn by the version you already have installed, this takes effect from the update after 1.8.1.
 
 = 1.8.0 =
 * Added: a monthly summary email. On the first of each month vendors can be sent the figures for the month just gone, with a button that opens their full report for that month. Suggested by the community.

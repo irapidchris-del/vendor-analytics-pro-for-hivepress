@@ -3,7 +3,7 @@
  * Plugin Name: Vendor Analytics Pro for HivePress
  * Plugin URI: https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress
  * Description: A first-party analytics dashboard for HivePress vendors - views, phone/email click tracking, messages, bookings funnel, earnings, response-time trends, search terms and category benchmarks, stored as daily aggregates with no third-party services.
- * Version: 1.8.0
+ * Version: 1.8.1
  * Author: ChrisB
  * Author URI: https://community.hivepress.io/u/chrisb/summary
  * Requires Plugins: hivepress
@@ -43,7 +43,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'HPVA_VERSION', '1.8.0' );
+define( 'HPVA_VERSION', '1.8.1' );
 define( 'HPVA_DB_VERSION', '2' );
 define( 'HPVA_FILE', __FILE__ );
 
@@ -276,7 +276,7 @@ function hpva_update_plugin_info( $result, $action, $args ) {
 		'download_link' => $release['package'],
 		'sections'      => [
 			'description' => wpautop( esc_html( $plugin_data['Description'] ) ),
-			'changelog'   => $release['notes'] ? wpautop( esc_html( $release['notes'] ) ) : '<p>' . esc_html__( 'See the GitHub releases page for the changelog.', 'hivepress-vendor-analytics' ) . '</p>',
+			'changelog'   => $release['notes'] ? hpva_release_notes_html( $release['notes'] ) : '<p>' . esc_html__( 'See the GitHub releases page for the changelog.', 'hivepress-vendor-analytics' ) . '</p>',
 		],
 	];
 }
@@ -715,22 +715,31 @@ function hpva_register_settings( $settings ) {
 						'_order'  => 10,
 					],
 
+					'vendor_analytics_monthly_vendors' => [
+						'label'       => __( 'Vendor choice', 'hivepress-vendor-analytics' ),
+						'caption'     => __( 'Let vendors decide this for themselves', 'hivepress-vendor-analytics' ),
+						'description' => __( 'Adds the two choices below to each vendor\'s own settings page. Switch this off to keep the decision yourself: vendors then see nothing about the monthly email, and the two settings below apply to all of them. Any choices vendors have already made are remembered and come back if you switch this on again.', 'hivepress-vendor-analytics' ),
+						'type'        => 'checkbox',
+						'default'     => true,
+						'_order'      => 20,
+					],
+
 					'vendor_analytics_monthly_default' => [
-						'label'       => __( 'New vendors', 'hivepress-vendor-analytics' ),
-						'caption'     => __( 'Receive the monthly email unless they turn it off', 'hivepress-vendor-analytics' ),
-						'description' => __( 'Applies to vendors who have not yet made a choice on their own settings page. Leave this off to have vendors opt in themselves, which is the safer choice if you are unsure whether they expect email from you.', 'hivepress-vendor-analytics' ),
+						'label'       => __( 'Send to vendors', 'hivepress-vendor-analytics' ),
+						'caption'     => __( 'Vendors receive the monthly email', 'hivepress-vendor-analytics' ),
+						'description' => __( 'While vendors can decide for themselves this is only what they start with, before they have chosen. With vendor choice switched off it applies to every vendor. Leaving it off means nobody is emailed until they ask to be, which is the safer choice if you are unsure whether your vendors expect email from you.', 'hivepress-vendor-analytics' ),
 						'type'        => 'checkbox',
 						'default'     => false,
-						'_order'      => 20,
+						'_order'      => 30,
 					],
 
 					'vendor_analytics_monthly_quiet'   => [
 						'label'       => __( 'Quiet months', 'hivepress-vendor-analytics' ),
-						'caption'     => __( 'Send the email even when there was no activity at all', 'hivepress-vendor-analytics' ),
-						'description' => __( 'A month with no views, messages, bookings or earnings produces a page of zeros. Vendors can override this on their own settings page.', 'hivepress-vendor-analytics' ),
+						'caption'     => __( 'Send it even when there was no activity at all', 'hivepress-vendor-analytics' ),
+						'description' => __( 'A month with no views, messages, bookings or earnings produces a page of zeros. Same rule as above: a starting point while vendors can choose, and the setting for everybody when they cannot.', 'hivepress-vendor-analytics' ),
 						'type'        => 'checkbox',
 						'default'     => false,
-						'_order'      => 30,
+						'_order'      => 40,
 					],
 				],
 			],
@@ -4568,6 +4577,17 @@ function hpva_report_token_url( $vendor_id, $month ) {
  * @return bool
  */
 function hpva_monthly_choice( $user_id, $key, $option ) {
+
+	// With vendor choice switched off, the site owner's settings govern every
+	// vendor, including any who had chosen otherwise while the choice was
+	// offered. That is exactly what the setting says it does, and a control
+	// promising the owner the decision while quietly deferring to old vendor
+	// preferences would be the worse kind of wrong. Their stored choice is
+	// read past, never deleted, so switching the choice back on restores it.
+	if ( ! hpva_get_option( 'vendor_analytics_monthly_vendors', true ) ) {
+		return (bool) hpva_get_option( $option, false );
+	}
+
 	$stored = get_user_meta( $user_id, $key, true );
 
 	if ( '' === $stored ) {
@@ -4584,7 +4604,12 @@ function hpva_monthly_choice( $user_id, $key, $option ) {
  * @return array
  */
 function hpva_add_monthly_fields( $form ) {
-	if ( ! hpva_get_option( 'vendor_analytics_monthly', false ) ) {
+
+	// Two gates, not one: the feature has to be on at all, and the site owner
+	// has to be delegating the decision. With vendor choice off there is
+	// nothing here for a vendor to change, so showing them a control that does
+	// nothing would be worse than showing them none.
+	if ( ! hpva_get_option( 'vendor_analytics_monthly', false ) || ! hpva_get_option( 'vendor_analytics_monthly_vendors', true ) ) {
 		return $form;
 	}
 
@@ -4794,4 +4819,98 @@ function hpva_send_monthly_summary( $vendor_id, $user_id, $month, $from, $to ) {
 	);
 
 	return (bool) $email->send();
+}
+
+/**
+ * Renders inline Markdown from a release body.
+ *
+ * Everything is escaped FIRST, so no markup in a GitHub release body can reach
+ * the page; every tag below is one added here afterwards.
+ *
+ * @param string $text One line or paragraph of release notes.
+ * @return string
+ */
+function hpva_release_notes_inline( $text ) {
+	$text = esc_html( $text );
+
+	// Links. esc_html() has already turned any & into &amp;, so the URL is
+	// decoded once before esc_url() sees it, or query strings would break.
+	$text = preg_replace_callback(
+		'/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/',
+		function ( $matches ) {
+			return '<a href="' . esc_url( html_entity_decode( $matches[2], ENT_QUOTES ) ) . '">' . $matches[1] . '</a>';
+		},
+		$text
+	);
+
+	$text = preg_replace( '/`([^`]+)`/', '<code>$1</code>', $text );
+	$text = preg_replace( '/\*\*([^*]+)\*\*/', '<strong>$1</strong>', $text );
+
+	return $text;
+}
+
+/**
+ * Turns a GitHub release body into the HTML the "View version details" popup
+ * expects.
+ *
+ * WordPress renders the `sections` payload as HTML, so escaping the Markdown
+ * and running it through wpautop - which is what this did until 1.8.1 - showed
+ * readers a literal "## Monthly summary email" and "**bold**" where every other
+ * plugin's popup shows headings and bold text. Found on staging 2026-08-16.
+ *
+ * This handles the subset of Markdown our own release notes actually use:
+ * headings, bullet lists, bold, inline code and links. Anything else degrades
+ * to plain text, which is the right way for a changelog renderer to fail. A
+ * full Markdown parser would be a dependency, and a large one, for a popup.
+ *
+ * @param string $notes Release body in Markdown.
+ * @return string
+ */
+function hpva_release_notes_html( $notes ) {
+	$notes = trim( str_replace( "\r\n", "\n", (string) $notes ) );
+
+	if ( '' === $notes ) {
+		return '';
+	}
+
+	$lines = explode( "\n", $notes );
+
+	// Sentinel: guarantees the last paragraph or list is closed.
+	$lines[] = '';
+
+	$html = '';
+	$para = [];
+	$list = [];
+
+	foreach ( $lines as $line ) {
+		$line = trim( $line );
+
+		$is_heading = (bool) preg_match( '/^#{1,6}\s+(.+)$/', $line, $heading );
+		$is_item    = (bool) preg_match( '/^[-*]\s+(.+)$/', $line, $item );
+
+		// A paragraph ends at a heading, a list item or a blank line.
+		if ( $para && ( $is_heading || $is_item || '' === $line ) ) {
+			$html .= '<p>' . hpva_release_notes_inline( implode( ' ', $para ) ) . '</p>';
+			$para  = [];
+		}
+
+		// A list ends at anything that is not another item.
+		if ( $list && ! $is_item ) {
+			$html .= '<ul><li>' . implode( '</li><li>', $list ) . '</li></ul>';
+			$list  = [];
+		}
+
+		if ( $is_heading ) {
+
+			// h4 is what WordPress's own plugin popups use for section
+			// headings, so this matches the surrounding chrome.
+			$html .= '<h4>' . hpva_release_notes_inline( $heading[1] ) . '</h4>';
+		} elseif ( $is_item ) {
+			$list[] = hpva_release_notes_inline( $item[1] );
+		} elseif ( '' !== $line ) {
+			$para[] = $line;
+		}
+	}
+
+	return $html;
 }
