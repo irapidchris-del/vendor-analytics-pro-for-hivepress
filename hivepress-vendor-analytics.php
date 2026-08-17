@@ -703,43 +703,35 @@ function hpva_register_settings( $settings ) {
 
 			'monthly'   => [
 				'title'       => __( 'Monthly report email', 'hivepress-vendor-analytics' ),
-				'description' => __( 'On the first of each month, vendors can be sent a summary of the month just gone, with a button that opens their full report. Whether each vendor decides for themselves, or you decide for all of them, is set below. Edit the wording under HivePress > Emails.', 'hivepress-vendor-analytics' ),
+				'description' => __( 'On the first of each month, vendors can be sent a summary of the month just gone, with a button that opens their full report. Switching it on sends to every vendor; the second setting hands each vendor the choice for themselves. Edit the wording under HivePress > Emails.', 'hivepress-vendor-analytics' ),
 				'_order'      => 15,
 
 				'fields'      => [
 					'vendor_analytics_monthly'         => [
-						'label'   => __( 'Monthly emails', 'hivepress-vendor-analytics' ),
-						'caption' => __( 'Send vendors a monthly summary of their analytics', 'hivepress-vendor-analytics' ),
-						'type'    => 'checkbox',
-						'default' => false,
-						'_order'  => 10,
+						'label'       => __( 'Monthly reports', 'hivepress-vendor-analytics' ),
+						'caption'     => __( 'Email vendors a monthly summary of their analytics', 'hivepress-vendor-analytics' ),
+						'description' => __( 'While this is off nothing is sent and nothing is shown to vendors. Switching it on means every vendor is emailed on the first of the month, unless they have turned it off for themselves.', 'hivepress-vendor-analytics' ),
+						'type'        => 'checkbox',
+						'default'     => false,
+						'_order'      => 10,
 					],
 
 					'vendor_analytics_monthly_vendors' => [
 						'label'       => __( 'Vendor choice', 'hivepress-vendor-analytics' ),
-						'caption'     => __( 'Let vendors decide this for themselves', 'hivepress-vendor-analytics' ),
-						'description' => __( 'Adds the two choices below to each vendor\'s own settings page. Switch this off to keep the decision yourself: vendors then see nothing about the monthly email, and the two settings below apply to all of them. Any choices vendors have already made are remembered and come back if you switch this on again.', 'hivepress-vendor-analytics' ),
+						'caption'     => __( 'Let vendors decide whether to receive them', 'hivepress-vendor-analytics' ),
+						'description' => __( 'Adds the choice to each vendor\'s own settings page, so they can turn the email off. Switch this off to keep the decision yourself: vendors then see nothing about it and everyone is emailed. Any choices vendors have already made are remembered and come back if you switch this on again.', 'hivepress-vendor-analytics' ),
 						'type'        => 'checkbox',
 						'default'     => true,
 						'_order'      => 20,
 					],
 
-					'vendor_analytics_monthly_default' => [
-						'label'       => __( 'Send to vendors', 'hivepress-vendor-analytics' ),
-						'caption'     => __( 'Vendors receive the monthly email', 'hivepress-vendor-analytics' ),
-						'description' => __( 'While vendors can decide for themselves this is only what they start with, before they have chosen. With vendor choice switched off it applies to every vendor. Leaving it off means nobody is emailed until they ask to be, which is the safer choice if you are unsure whether your vendors expect email from you.', 'hivepress-vendor-analytics' ),
+					'vendor_analytics_monthly_quiet'   => [
+						'label'       => __( 'Quiet months', 'hivepress-vendor-analytics' ),
+						'caption'     => __( 'Include vendors with no activity to report', 'hivepress-vendor-analytics' ),
+						'description' => __( 'A month with no views, messages, bookings or earnings produces a page of zeros, so this is off by default. While vendors can decide for themselves, each one can override this on their own settings page.', 'hivepress-vendor-analytics' ),
 						'type'        => 'checkbox',
 						'default'     => false,
 						'_order'      => 30,
-					],
-
-					'vendor_analytics_monthly_quiet'   => [
-						'label'       => __( 'Quiet months', 'hivepress-vendor-analytics' ),
-						'caption'     => __( 'Send it even when there was no activity at all', 'hivepress-vendor-analytics' ),
-						'description' => __( 'A month with no views, messages, bookings or earnings produces a page of zeros. Same rule as above: a starting point while vendors can choose, and the setting for everybody when they cannot.', 'hivepress-vendor-analytics' ),
-						'type'        => 'checkbox',
-						'default'     => false,
-						'_order'      => 40,
 					],
 				],
 			],
@@ -4562,21 +4554,27 @@ function hpva_report_token_url( $vendor_id, $month ) {
 }
 
 /**
- * Reads a vendor's own monthly email choice, falling back to the site owner's
- * default.
+ * Reads a vendor's own monthly email choice, falling back to what the site
+ * owner's settings say.
  *
  * The meta is deliberately three-state: '1' and '0' are the vendor's own
- * decision, and no meta at all means they have not chosen one, so the owner's
- * default applies. Storing a plain boolean would collapse "no thanks" and
- * "never asked" into the same value, and the owner's default would then
- * silently switch an email back on for somebody who had turned it off.
+ * decision, and no meta at all means they have not chosen one, so the fallback
+ * applies. Storing a plain boolean would collapse "no thanks" and "never asked"
+ * into the same value, and the fallback would then silently switch an email
+ * back on for somebody who had turned it off.
+ *
+ * The fallback is passed in rather than read from an option here, because the
+ * two questions have different answers. Whether to send at all has no separate
+ * setting: switching the feature on IS the decision to send, so the fallback is
+ * simply true. Quiet months has its own setting, and that value is passed in.
  *
  * @param int    $user_id User ID.
  * @param string $key Meta key.
- * @param string $option Admin default option name.
+ * @param bool   $fallback What applies when the vendor has not chosen, or
+ *                         cannot.
  * @return bool
  */
-function hpva_monthly_choice( $user_id, $key, $option ) {
+function hpva_monthly_choice( $user_id, $key, $fallback ) {
 
 	// With vendor choice switched off, the site owner's settings govern every
 	// vendor, including any who had chosen otherwise while the choice was
@@ -4585,13 +4583,13 @@ function hpva_monthly_choice( $user_id, $key, $option ) {
 	// preferences would be the worse kind of wrong. Their stored choice is
 	// read past, never deleted, so switching the choice back on restores it.
 	if ( ! hpva_get_option( 'vendor_analytics_monthly_vendors', true ) ) {
-		return (bool) hpva_get_option( $option, false );
+		return (bool) $fallback;
 	}
 
 	$stored = get_user_meta( $user_id, $key, true );
 
 	if ( '' === $stored ) {
-		return (bool) hpva_get_option( $option, false );
+		return (bool) $fallback;
 	}
 
 	return '1' === $stored;
@@ -4635,7 +4633,7 @@ function hpva_add_monthly_fields( $form, $object = null ) {
 		'label'   => __( 'Monthly analytics email', 'hivepress-vendor-analytics' ),
 		'caption' => __( 'Email me a summary of my listings each month', 'hivepress-vendor-analytics' ),
 		'type'    => 'checkbox',
-		'default' => hpva_monthly_choice( $user_id, '_hpva_monthly', 'vendor_analytics_monthly_default' ),
+		'default' => hpva_monthly_choice( $user_id, '_hpva_monthly', true ),
 		'_order'  => 610,
 	];
 
@@ -4643,7 +4641,7 @@ function hpva_add_monthly_fields( $form, $object = null ) {
 		'label'   => __( 'Quiet months', 'hivepress-vendor-analytics' ),
 		'caption' => __( 'Send it even if there was no activity that month', 'hivepress-vendor-analytics' ),
 		'type'    => 'checkbox',
-		'default' => hpva_monthly_choice( $user_id, '_hpva_monthly_quiet', 'vendor_analytics_monthly_quiet' ),
+		'default' => hpva_monthly_choice( $user_id, '_hpva_monthly_quiet', (bool) hpva_get_option( 'vendor_analytics_monthly_quiet', false ) ),
 		'_order'  => 620,
 	];
 
@@ -4777,7 +4775,7 @@ function hpva_send_monthly_summaries() {
 			continue;
 		}
 
-		if ( ! hpva_monthly_choice( $user_id, '_hpva_monthly', 'vendor_analytics_monthly_default' ) ) {
+		if ( ! hpva_monthly_choice( $user_id, '_hpva_monthly', true ) ) {
 			continue;
 		}
 
@@ -4815,7 +4813,7 @@ function hpva_send_monthly_summary( $vendor_id, $user_id, $month, $from, $to ) {
 	$activity = $m( 'view' ) + $m( 'vendor_view' ) + $m( 'message' ) + $m( 'booking_confirmed' )
 		+ $m( 'order' ) + $m( 'earning_minor' ) + $m( 'phone_click' ) + $m( 'email_click' ) + $m( 'favorite' );
 
-	if ( ! $activity && ! hpva_monthly_choice( $user_id, '_hpva_monthly_quiet', 'vendor_analytics_monthly_quiet' ) ) {
+	if ( ! $activity && ! hpva_monthly_choice( $user_id, '_hpva_monthly_quiet', (bool) hpva_get_option( 'vendor_analytics_monthly_quiet', false ) ) ) {
 		return false;
 	}
 

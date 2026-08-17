@@ -63,8 +63,9 @@ $hpva_options = [
 	'hp_vendor_analytics_hide_dashboard',
 	'hp_vendor_analytics_monthly',
 	'hp_vendor_analytics_monthly_vendors',
-	'hp_vendor_analytics_monthly_default',
 	'hp_vendor_analytics_monthly_quiet',
+	// Dropped in 1.8.1; 1.8.0 installs may still carry it.
+	'hp_vendor_analytics_monthly_default',
 	// Marker for the month the summaries last went out.
 	'hpva_monthly_sent',
 	// Removed in 1.6.0 but may exist on earlier installs.
