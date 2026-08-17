@@ -42,7 +42,7 @@ class Hpva_Analytics_Summary extends Email {
 			[
 				/* translators: %s: recipient. */
 				'label'       => sprintf( esc_html__( 'Monthly Analytics Summary (%s)', 'hivepress-vendor-analytics' ), hivepress()->translator->get_string( 'vendor' ) ),
-				'description' => esc_html__( 'This email is sent on the first of each month to vendors who have chosen to receive it, summarising the month just gone.', 'hivepress-vendor-analytics' ),
+				'description' => esc_html__( 'This email is sent on the first of each month, summarising the month just gone. Who receives it is set under HivePress > Settings > Analytics.', 'hivepress-vendor-analytics' ),
 				'recipient'   => hivepress()->translator->get_string( 'vendor' ),
 
 				'tokens'      => [
@@ -71,6 +71,19 @@ class Hpva_Analytics_Summary extends Email {
 	 * @param array $args Email arguments.
 	 */
 	public function __construct( $args = [] ) {
+
+		// With vendor choice switched off the two controls are removed from the
+		// account settings page, so telling a vendor to turn the email off
+		// there is an instruction they cannot carry out. That configuration is
+		// the only one in which the Vendor choice setting does anything, so
+		// getting this wrong would be wrong in every email the setting exists
+		// to enable. Read at send time, so it always reflects the current
+		// setting. Note the leading backslash: this file is in the
+		// HivePress\Emails namespace and hpva_get_option() is global.
+		$footer = ( ! function_exists( 'hpva_get_option' ) || \hpva_get_option( 'vendor_analytics_monthly_vendors', true ) )
+			? esc_html__( 'To stop receiving this email, turn it off in your account settings: %settings_url%', 'hivepress-vendor-analytics' )
+			: esc_html__( 'This email is sent by the site owner. Contact them if you would rather not receive it.', 'hivepress-vendor-analytics' );
+
 		$args = hp\merge_arrays(
 			[
 				'subject' => esc_html__( 'Your listings last month', 'hivepress-vendor-analytics' ),
@@ -107,7 +120,7 @@ class Hpva_Analytics_Summary extends Email {
 					. '<p><a href="%report_url%" style="display:inline-block;padding:12px 22px;background:#4a5568;color:#ffffff;text-decoration:none;border-radius:3px;font-weight:600">'
 					. esc_html__( 'View my full report', 'hivepress-vendor-analytics' )
 					. '</a></p>'
-					. '<p>' . esc_html__( 'To stop receiving this email, turn it off in your account settings: %settings_url%', 'hivepress-vendor-analytics' ) . '</p>',
+					. '<p>' . $footer . '</p>',
 			],
 			$args
 		);

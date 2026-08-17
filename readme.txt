@@ -49,6 +49,8 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 == Changelog ==
 
 = 1.8.1 =
+* Fixed: the monthly email's two settings appeared partway through submitting a listing and through vendor registration, because those steps reuse the account settings form. They now appear only on the settings page itself.
+* Fixed: an administrator saving another user's profile could silently switch that person's monthly email off, in a way nothing could switch back on. A person's choice is now only ever written by that person.
 * Added: a "Vendor choice" setting. Switch it off to keep the decision about the monthly email yourself: vendors then see nothing about it on their settings page, and your two settings apply to all of them. Any choices vendors already made are remembered and come back if you switch it on again.
 * Fixed: the "View version details" popup on the Plugins screen showed the release notes as raw text, with stray hashes and asterisks where the headings and bold type should have been. They are now rendered properly. Because the popup is drawn by the version you already have installed, this takes effect from the update after 1.8.1.
 

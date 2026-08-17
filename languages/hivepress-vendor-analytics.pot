@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-16T22:11:05+00:00\n"
+"POT-Creation-Date: 2026-08-17T12:49:36+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: hivepress-vendor-analytics\n"
@@ -174,7 +174,7 @@ msgid "Monthly report email"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:706
-msgid "On the first of each month, vendors can be sent a summary of the month just gone, with a button that opens their full report. Each vendor chooses whether to receive it on their own account settings page; the two settings here decide what a vendor gets before they have chosen. Edit the wording under HivePress > Emails."
+msgid "On the first of each month, vendors can be sent a summary of the month just gone, with a button that opens their full report. Whether each vendor decides for themselves, or you decide for all of them, is set below. Edit the wording under HivePress > Emails."
 msgstr ""
 
 #: hivepress-vendor-analytics.php:711
@@ -210,7 +210,7 @@ msgid "While vendors can decide for themselves this is only what they start with
 msgstr ""
 
 #: hivepress-vendor-analytics.php:737
-#: hivepress-vendor-analytics.php:4631
+#: hivepress-vendor-analytics.php:4643
 msgid "Quiet months"
 msgstr ""
 
@@ -760,15 +760,15 @@ msgstr ""
 msgid "SEARCH TERMS"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4623
+#: hivepress-vendor-analytics.php:4635
 msgid "Monthly analytics email"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4624
+#: hivepress-vendor-analytics.php:4636
 msgid "Email me a summary of my listings each month"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4632
+#: hivepress-vendor-analytics.php:4644
 msgid "Send it even if there was no activity that month"
 msgstr ""
 
@@ -779,49 +779,53 @@ msgid "Monthly Analytics Summary (%s)"
 msgstr ""
 
 #: includes/emails/class-hpva-analytics-summary.php:45
-msgid "This email is sent on the first of each month to vendors who have chosen to receive it, summarising the month just gone."
+msgid "This email is sent on the first of each month, summarising the month just gone. Who receives it is set under HivePress > Settings > Analytics."
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:76
+#: includes/emails/class-hpva-analytics-summary.php:84
+#, php-format
+msgid "To stop receiving this email, turn it off in your account settings: %settings_url%"
+msgstr ""
+
+#: includes/emails/class-hpva-analytics-summary.php:85
+msgid "This email is sent by the site owner. Contact them if you would rather not receive it."
+msgstr ""
+
+#: includes/emails/class-hpva-analytics-summary.php:89
 msgid "Your listings last month"
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:98
+#: includes/emails/class-hpva-analytics-summary.php:111
 #, php-format
 msgid "Hi, %user_name%! Here is how your listings did in %period%."
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:100
+#: includes/emails/class-hpva-analytics-summary.php:113
 msgid "Listing views: %listing_views%"
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:101
+#: includes/emails/class-hpva-analytics-summary.php:114
 msgid "Profile views: %profile_views%"
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:102
+#: includes/emails/class-hpva-analytics-summary.php:115
 msgid "Messages received: %messages%"
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:103
+#: includes/emails/class-hpva-analytics-summary.php:116
 #, php-format
 msgid "Bookings confirmed: %bookings%"
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:104
+#: includes/emails/class-hpva-analytics-summary.php:117
 #, php-format
 msgid "Earnings: %earnings%"
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:106
+#: includes/emails/class-hpva-analytics-summary.php:119
 msgid "Your full report for the month shows your best performing listings and the searches that found you."
 msgstr ""
 
-#: includes/emails/class-hpva-analytics-summary.php:108
+#: includes/emails/class-hpva-analytics-summary.php:121
 msgid "View my full report"
-msgstr ""
-
-#: includes/emails/class-hpva-analytics-summary.php:110
-#, php-format
-msgid "To stop receiving this email, turn it off in your account settings: %settings_url%"
 msgstr ""

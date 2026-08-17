@@ -604,7 +604,7 @@ function hpva_init() {
 
 	// Monthly summary email: the vendor's own two controls on their account
 	// settings form, and the send itself on HivePress's daily event.
-	add_filter( 'hivepress/v1/forms/user_update', 'hpva_add_monthly_fields' );
+	add_filter( 'hivepress/v1/forms/user_update', 'hpva_add_monthly_fields', 10, 2 );
 	add_filter( 'hivepress/v1/forms/user_update/errors', 'hpva_capture_monthly_choice', 10, 2 );
 	add_action( 'hivepress/v1/models/user/update', 'hpva_save_monthly_choice' );
 	add_action( 'hivepress/v1/events/daily', 'hpva_send_monthly_summaries' );
@@ -703,7 +703,7 @@ function hpva_register_settings( $settings ) {
 
 			'monthly'   => [
 				'title'       => __( 'Monthly report email', 'hivepress-vendor-analytics' ),
-				'description' => __( 'On the first of each month, vendors can be sent a summary of the month just gone, with a button that opens their full report. Each vendor chooses whether to receive it on their own account settings page; the two settings here decide what a vendor gets before they have chosen. Edit the wording under HivePress > Emails.', 'hivepress-vendor-analytics' ),
+				'description' => __( 'On the first of each month, vendors can be sent a summary of the month just gone, with a button that opens their full report. Whether each vendor decides for themselves, or you decide for all of them, is set below. Edit the wording under HivePress > Emails.', 'hivepress-vendor-analytics' ),
 				'_order'      => 15,
 
 				'fields'      => [
@@ -4603,7 +4603,19 @@ function hpva_monthly_choice( $user_id, $key, $option ) {
  * @param array $form Form arguments.
  * @return array
  */
-function hpva_add_monthly_fields( $form ) {
+function hpva_add_monthly_fields( $form, $object = null ) {
+
+	// Core applies a parent form's filter to its children too: Form::__construct
+	// loops hp\get_class_parents (forms/class-form.php:159), and
+	// User_Update_Profile extends User_Update. That child form is the profile
+	// STEP of listing submission and vendor registration, so without this guard
+	// somebody part-way through submitting a listing is asked whether they want
+	// a monthly analytics email. Verified on the dev site, both forms carried
+	// the fields. Match one exact class, which is what the framework notes say
+	// to do and what this failed to do in 1.8.0.
+	if ( is_object( $object ) && 'HivePress\Forms\User_Update' !== get_class( $object ) ) {
+		return $form;
+	}
 
 	// Two gates, not one: the feature has to be on at all, and the site owner
 	// has to be delegating the decision. With vendor choice off there is
@@ -4641,14 +4653,19 @@ function hpva_add_monthly_fields( $form ) {
 /**
  * Holds the pending choice between validation and the model update.
  *
- * @param string|null $name Field name, or null to read everything back.
- * @param string|null $value Value to record.
- * @return array
+ * @param string|false|null $name Field name to record, false to clear the
+ *                                store, or null to read everything back.
+ * @param string|null       $value Value to record.
+ * @return array<string, string>
  */
 function hpva_pending_monthly_choice( $name = null, $value = null ) {
 	static $pending = [];
 
-	if ( null !== $name ) {
+	// false clears the store, so a second models/user/update in the same
+	// request cannot replay a write that has already been applied.
+	if ( false === $name ) {
+		$pending = [];
+	} elseif ( null !== $name ) {
 		$pending[ $name ] = $value;
 	}
 
@@ -4693,9 +4710,23 @@ function hpva_capture_monthly_choice( $errors, $form ) {
  * @param int $user_id User ID.
  */
 function hpva_save_monthly_choice( $user_id ) {
+
+	// The fields are only ever added for whoever is logged in, but this action
+	// fires with whatever user was saved, and core's REST route lets an
+	// edit_users holder update anybody (controllers/class-user.php:640). Their
+	// own absent checkboxes would then be stamped onto the target as an
+	// explicit '0' - a silent unsubscribe that the admin default can never
+	// undo, because '0' is no longer "never chose". There is no case where the
+	// target should differ from the actor.
+	if ( (int) $user_id !== get_current_user_id() ) {
+		return;
+	}
+
 	foreach ( hpva_pending_monthly_choice() as $name => $value ) {
 		update_user_meta( (int) $user_id, '_' . $name, $value );
 	}
+
+	hpva_pending_monthly_choice( false );
 }
 
 /**
@@ -4878,12 +4909,48 @@ function hpva_release_notes_html( $notes ) {
 	// Sentinel: guarantees the last paragraph or list is closed.
 	$lines[] = '';
 
-	$html = '';
-	$para = [];
-	$list = [];
+	$html    = '';
+	$para    = [];
+	$list    = [];
+	$code    = [];
+	$in_code = false;
 
 	foreach ( $lines as $line ) {
+		$raw  = rtrim( $line );
 		$line = trim( $line );
+
+		// Fenced code blocks are handled before anything else, because inside
+		// one the leading - and # of a shell command or a diff are not Markdown
+		// and must survive untouched. Without this a fence fell through to the
+		// paragraph branch and its stray backticks were then paired up by the
+		// inline rule, which printed visible junk - and the docblock above
+		// promises unsupported syntax degrades to plain text, not to junk.
+		if ( 0 === strpos( $line, '```' ) ) {
+			if ( $para ) {
+				$html .= '<p>' . hpva_release_notes_inline( implode( ' ', $para ) ) . '</p>';
+				$para  = [];
+			}
+
+			if ( $list ) {
+				$html .= '<ul><li>' . implode( '</li><li>', $list ) . '</li></ul>';
+				$list  = [];
+			}
+
+			if ( $in_code ) {
+				$html .= '<pre><code>' . esc_html( implode( "\n", $code ) ) . '</code></pre>';
+				$code  = [];
+			}
+
+			$in_code = ! $in_code;
+
+			continue;
+		}
+
+		if ( $in_code ) {
+			$code[] = $raw;
+
+			continue;
+		}
 
 		$is_heading = (bool) preg_match( '/^#{1,6}\s+(.+)$/', $line, $heading );
 		$is_item    = (bool) preg_match( '/^[-*]\s+(.+)$/', $line, $item );
@@ -4910,6 +4977,11 @@ function hpva_release_notes_html( $notes ) {
 		} elseif ( '' !== $line ) {
 			$para[] = $line;
 		}
+	}
+
+	// An unclosed fence still has to emit what it collected.
+	if ( $code ) {
+		$html .= '<pre><code>' . esc_html( implode( "\n", $code ) ) . '</code></pre>';
 	}
 
 	return $html;
