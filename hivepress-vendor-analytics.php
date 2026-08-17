@@ -1445,6 +1445,15 @@ function hpva_maybe_upgrade() {
 		}
 	}
 
+	// 1.8.1 dropped the "Send to vendors" setting: switching the monthly report
+	// on is itself the decision to send, so a second box asking whether to send
+	// had no separate meaning. Nothing reads the option any more, but a 1.8.0
+	// install would otherwise carry the dead row for the life of the site.
+	// Uninstall clears it too, for anyone who never passes through this path.
+	if ( $stored && version_compare( (string) $stored, '1.8.1', '<' ) ) {
+		delete_option( 'hp_vendor_analytics_monthly_default' );
+	}
+
 	update_option( 'hpva_version', HPVA_VERSION, false );
 }
 

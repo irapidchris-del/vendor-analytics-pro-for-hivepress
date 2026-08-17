@@ -54,7 +54,7 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 * Fixed: an administrator saving another user's profile could silently switch that person's monthly email off, in a way nothing could switch back on. A person's choice is now only ever written by that person.
 * Added: a "Vendor choice" setting. Switch it off to keep the decision about the monthly email yourself: vendors then see nothing about it on their settings page, and everyone is emailed. Any choices vendors already made are remembered and come back if you switch it on again.
 * Changed: the monthly report is controlled by three settings rather than four. Switching it on is itself the decision to send, so the separate "Send to vendors" box has gone.
-* Fixed: the "View version details" popup on the Plugins screen showed the release notes as raw text, with stray hashes and asterisks where the headings and bold type should have been. They are now rendered properly. Because the popup is drawn by the version you already have installed, this takes effect from the update after 1.8.1.
+* Fixed: the "View version details" popup on the Plugins screen showed the release notes as raw text, with stray hashes and asterisks where the headings and bold type should have been. They are now rendered properly, from the moment this version is installed.
 
 = 1.8.0 =
 * Added: a monthly summary email. On the first of each month vendors can be sent the figures for the month just gone, with a button that opens their full report for that month. Suggested by the community.
