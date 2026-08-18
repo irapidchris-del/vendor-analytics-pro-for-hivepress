@@ -6,10 +6,10 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. v1.5.1)'
+        description: 'Release tag (e.g. v1.8.1)'
         required: true
       notes:
-        description: 'Release notes (Markdown, optional — auto-generated if empty)'
+        description: 'Release notes (Markdown, optional, auto-generated if empty)'
         required: false
         default: ''
 
@@ -22,10 +22,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The cp lines below are an allowlist. A top-level file or folder missing
+      # here never reaches the zip, and tools/package.ps1 parses these same
+      # lines, so a locally built zip carries exactly these files too.
+      #
+      # The asset name is fixed at vendor-analytics-pro-for-hivepress.zip: forum posts link to
+      # releases/latest/download/vendor-analytics-pro-for-hivepress.zip, so renaming it would break
+      # every published download link.
       - name: Build plugin zip
         run: |
-          chmod +x build.sh
-          ./build.sh
+          mkdir -p build/vendor-analytics-pro-for-hivepress
+          cp hivepress-vendor-analytics.php uninstall.php readme.txt build/vendor-analytics-pro-for-hivepress/
+          cp -r includes assets build/vendor-analytics-pro-for-hivepress/
+          if [ -d languages ]; then cp -r languages build/vendor-analytics-pro-for-hivepress/; fi
+          cd build
+          zip -r vendor-analytics-pro-for-hivepress.zip vendor-analytics-pro-for-hivepress
 
       - name: Create or refresh the release (manual dispatch)
         if: github.event_name == 'workflow_dispatch'
@@ -40,15 +51,15 @@ jobs:
             if [ -n "$NOTES" ]; then
               gh release edit "$TAG" --notes "$NOTES" --repo "$GITHUB_REPOSITORY"
             fi
-            gh release upload "$TAG" dist/vendor-analytics-pro-for-hivepress.zip --clobber --repo "$GITHUB_REPOSITORY"
+            gh release upload "$TAG" build/vendor-analytics-pro-for-hivepress.zip --clobber --repo "$GITHUB_REPOSITORY"
           elif [ -n "$NOTES" ]; then
-            gh release create "$TAG" dist/vendor-analytics-pro-for-hivepress.zip --title "$TAG" --notes "$NOTES" --target "$GITHUB_SHA" --repo "$GITHUB_REPOSITORY"
+            gh release create "$TAG" build/vendor-analytics-pro-for-hivepress.zip --title "$TAG" --notes "$NOTES" --target "$GITHUB_SHA" --repo "$GITHUB_REPOSITORY"
           else
-            gh release create "$TAG" dist/vendor-analytics-pro-for-hivepress.zip --title "$TAG" --generate-notes --target "$GITHUB_SHA" --repo "$GITHUB_REPOSITORY"
+            gh release create "$TAG" build/vendor-analytics-pro-for-hivepress.zip --title "$TAG" --generate-notes --target "$GITHUB_SHA" --repo "$GITHUB_REPOSITORY"
           fi
 
       - name: Upload asset to the release
         if: github.event_name == 'release'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "$GITHUB_REF_NAME" dist/vendor-analytics-pro-for-hivepress.zip --clobber --repo "$GITHUB_REPOSITORY"
+        run: gh release upload "$GITHUB_REF_NAME" build/vendor-analytics-pro-for-hivepress.zip --clobber --repo "$GITHUB_REPOSITORY"
