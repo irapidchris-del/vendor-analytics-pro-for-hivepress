@@ -2,14 +2,15 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Vendor Analytics Pro for HivePress 1.8.1\n"
-"Report-Msgid-Bugs-To: https://community.hivepress.io/u/chrisb/summary\n"
+"Project-Id-Version: Vendor Analytics Pro for HivePress 1.8.2\n"
+"Report-Msgid-Bugs-To: https://community.hivepress.io/u/chrisb/summary
+"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-17T16:24:22+00:00\n"
+"POT-Creation-Date: 2026-08-18T22:31:03+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: hivepress-vendor-analytics\n"
@@ -132,7 +133,7 @@ msgstr ""
 #: hivepress-vendor-analytics.php:690
 #: hivepress-vendor-analytics.php:3068
 #: hivepress-vendor-analytics.php:3505
-#: hivepress-vendor-analytics.php:4141
+#: hivepress-vendor-analytics.php:4155
 msgid "Conversion funnel"
 msgstr ""
 
@@ -150,18 +151,18 @@ msgstr ""
 
 #: hivepress-vendor-analytics.php:694
 #: hivepress-vendor-analytics.php:3145
-#: hivepress-vendor-analytics.php:4210
+#: hivepress-vendor-analytics.php:4224
 msgid "Category benchmark"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:695
-#: hivepress-vendor-analytics.php:4226
+#: hivepress-vendor-analytics.php:4240
 msgid "Search terms"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:696
 #: hivepress-vendor-analytics.php:3176
-#: hivepress-vendor-analytics.php:4241
+#: hivepress-vendor-analytics.php:4255
 msgid "Per-listing breakdown"
 msgstr ""
 
@@ -202,7 +203,7 @@ msgid "Adds the choice to each vendor's own settings page, so they can turn the 
 msgstr ""
 
 #: hivepress-vendor-analytics.php:729
-#: hivepress-vendor-analytics.php:4650
+#: hivepress-vendor-analytics.php:4664
 msgid "Quiet months"
 msgstr ""
 
@@ -337,113 +338,113 @@ msgstr ""
 #. translators: %s: number of days.
 #: hivepress-vendor-analytics.php:2987
 #: hivepress-vendor-analytics.php:3461
-#: hivepress-vendor-analytics.php:4073
+#: hivepress-vendor-analytics.php:4087
 #, php-format
 msgid "Changes compare against the previous %s days."
 msgstr ""
 
 #: hivepress-vendor-analytics.php:2997
-#: hivepress-vendor-analytics.php:4079
-#: hivepress-vendor-analytics.php:4348
+#: hivepress-vendor-analytics.php:4093
+#: hivepress-vendor-analytics.php:4362
 msgid "Listing views"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:2998
-#: hivepress-vendor-analytics.php:4082
-#: hivepress-vendor-analytics.php:4352
+#: hivepress-vendor-analytics.php:4096
+#: hivepress-vendor-analytics.php:4366
 msgid "Profile views"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:2999
-#: hivepress-vendor-analytics.php:4085
-#: hivepress-vendor-analytics.php:4355
+#: hivepress-vendor-analytics.php:4099
+#: hivepress-vendor-analytics.php:4369
 msgid "Messages received"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3002
 #: hivepress-vendor-analytics.php:3474
 #: hivepress-vendor-analytics.php:3572
-#: hivepress-vendor-analytics.php:4088
-#: hivepress-vendor-analytics.php:4359
+#: hivepress-vendor-analytics.php:4102
+#: hivepress-vendor-analytics.php:4373
 msgid "Bookings confirmed"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3006
 #: hivepress-vendor-analytics.php:3478
-#: hivepress-vendor-analytics.php:4092
-#: hivepress-vendor-analytics.php:4363
+#: hivepress-vendor-analytics.php:4106
+#: hivepress-vendor-analytics.php:4377
 msgid "Favourites gained"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3009
 #: hivepress-vendor-analytics.php:3481
 #: hivepress-vendor-analytics.php:3575
-#: hivepress-vendor-analytics.php:4095
-#: hivepress-vendor-analytics.php:4367
+#: hivepress-vendor-analytics.php:4109
+#: hivepress-vendor-analytics.php:4381
 msgid "Phone clicks"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3010
 #: hivepress-vendor-analytics.php:3482
 #: hivepress-vendor-analytics.php:3576
-#: hivepress-vendor-analytics.php:4096
-#: hivepress-vendor-analytics.php:4368
+#: hivepress-vendor-analytics.php:4110
+#: hivepress-vendor-analytics.php:4382
 msgid "Email clicks"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3013
-#: hivepress-vendor-analytics.php:4099
-#: hivepress-vendor-analytics.php:4371
+#: hivepress-vendor-analytics.php:4113
+#: hivepress-vendor-analytics.php:4385
 msgid "Offers sent"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3016
-#: hivepress-vendor-analytics.php:4102
-#: hivepress-vendor-analytics.php:4372
+#: hivepress-vendor-analytics.php:4116
+#: hivepress-vendor-analytics.php:4386
 msgid "Offers accepted"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3029
-#: hivepress-vendor-analytics.php:4107
-#: hivepress-vendor-analytics.php:4385
+#: hivepress-vendor-analytics.php:4121
+#: hivepress-vendor-analytics.php:4399
 msgid "Orders completed"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3030
 #: hivepress-vendor-analytics.php:3125
 #: hivepress-vendor-analytics.php:3129
-#: hivepress-vendor-analytics.php:4108
-#: hivepress-vendor-analytics.php:4194
-#: hivepress-vendor-analytics.php:4198
-#: hivepress-vendor-analytics.php:4386
+#: hivepress-vendor-analytics.php:4122
+#: hivepress-vendor-analytics.php:4208
+#: hivepress-vendor-analytics.php:4212
+#: hivepress-vendor-analytics.php:4400
 msgid "Earnings"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3030
-#: hivepress-vendor-analytics.php:4108
+#: hivepress-vendor-analytics.php:4122
 msgid "What you keep after commission, counted when each order is paid. Totals elsewhere on the site may show the full order value, which is higher."
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3031
-#: hivepress-vendor-analytics.php:4109
-#: hivepress-vendor-analytics.php:4387
+#: hivepress-vendor-analytics.php:4123
+#: hivepress-vendor-analytics.php:4401
 msgid "Refunded"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3032
-#: hivepress-vendor-analytics.php:4110
-#: hivepress-vendor-analytics.php:4388
+#: hivepress-vendor-analytics.php:4124
+#: hivepress-vendor-analytics.php:4402
 msgid "Net earnings"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3042
-#: hivepress-vendor-analytics.php:4116
-#: hivepress-vendor-analytics.php:4394
+#: hivepress-vendor-analytics.php:4130
+#: hivepress-vendor-analytics.php:4408
 msgid "Avg first response"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3042
-#: hivepress-vendor-analytics.php:4116
+#: hivepress-vendor-analytics.php:4130
 msgid "From a customer's first message to your first reply"
 msgstr ""
 
@@ -455,10 +456,10 @@ msgstr ""
 #: hivepress-vendor-analytics.php:3568
 #: hivepress-vendor-analytics.php:3582
 #: hivepress-vendor-analytics.php:3776
-#: hivepress-vendor-analytics.php:4079
-#: hivepress-vendor-analytics.php:4125
-#: hivepress-vendor-analytics.php:4151
-#: hivepress-vendor-analytics.php:4348
+#: hivepress-vendor-analytics.php:4093
+#: hivepress-vendor-analytics.php:4139
+#: hivepress-vendor-analytics.php:4165
+#: hivepress-vendor-analytics.php:4362
 msgid "Views"
 msgstr ""
 
@@ -469,48 +470,48 @@ msgstr ""
 #: hivepress-vendor-analytics.php:3520
 #: hivepress-vendor-analytics.php:3569
 #: hivepress-vendor-analytics.php:3777
-#: hivepress-vendor-analytics.php:4129
-#: hivepress-vendor-analytics.php:4156
+#: hivepress-vendor-analytics.php:4143
+#: hivepress-vendor-analytics.php:4170
 msgid "Messages"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3062
 #: hivepress-vendor-analytics.php:3500
 #: hivepress-vendor-analytics.php:3778
-#: hivepress-vendor-analytics.php:4136
+#: hivepress-vendor-analytics.php:4150
 msgid "Bookings"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3069
 #: hivepress-vendor-analytics.php:3506
-#: hivepress-vendor-analytics.php:4142
+#: hivepress-vendor-analytics.php:4156
 msgid "How many of the people who saw your listings went on to contact you, and how many of those went on to book."
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3075
 #: hivepress-vendor-analytics.php:3511
-#: hivepress-vendor-analytics.php:4147
+#: hivepress-vendor-analytics.php:4161
 msgid "Views & messages"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3104
-#: hivepress-vendor-analytics.php:4174
+#: hivepress-vendor-analytics.php:4188
 msgid "First response time (minutes, daily average)"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3108
-#: hivepress-vendor-analytics.php:4178
+#: hivepress-vendor-analytics.php:4192
 msgid "Minutes"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3147
-#: hivepress-vendor-analytics.php:4212
+#: hivepress-vendor-analytics.php:4226
 msgid "Your avg daily views / listing"
 msgstr ""
 
 #. translators: %s: category name.
 #: hivepress-vendor-analytics.php:3150
-#: hivepress-vendor-analytics.php:4215
+#: hivepress-vendor-analytics.php:4229
 #, php-format
 msgid "%s average"
 msgstr ""
@@ -525,33 +526,33 @@ msgstr ""
 
 #: hivepress-vendor-analytics.php:3163
 #: hivepress-vendor-analytics.php:3534
-#: hivepress-vendor-analytics.php:4227
-#: hivepress-vendor-analytics.php:4443
+#: hivepress-vendor-analytics.php:4241
+#: hivepress-vendor-analytics.php:4457
 msgid "Term"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3163
 #: hivepress-vendor-analytics.php:3534
-#: hivepress-vendor-analytics.php:4227
-#: hivepress-vendor-analytics.php:4443
+#: hivepress-vendor-analytics.php:4241
+#: hivepress-vendor-analytics.php:4457
 msgid "Impressions"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3163
 #: hivepress-vendor-analytics.php:3534
-#: hivepress-vendor-analytics.php:4227
-#: hivepress-vendor-analytics.php:4443
+#: hivepress-vendor-analytics.php:4241
+#: hivepress-vendor-analytics.php:4457
 msgid "Clicks"
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3177
-#: hivepress-vendor-analytics.php:4242
+#: hivepress-vendor-analytics.php:4256
 msgid "Ranked by views for the selected period, best performer first."
 msgstr ""
 
 #: hivepress-vendor-analytics.php:3182
 #: hivepress-vendor-analytics.php:3545
-#: hivepress-vendor-analytics.php:4248
+#: hivepress-vendor-analytics.php:4262
 msgid "No data recorded for this period yet."
 msgstr ""
 
@@ -603,164 +604,164 @@ msgstr ""
 msgid "Email"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:3799
-#: hivepress-vendor-analytics.php:4331
-#: hivepress-vendor-analytics.php:4411
+#: hivepress-vendor-analytics.php:3800
+#: hivepress-vendor-analytics.php:4345
+#: hivepress-vendor-analytics.php:4425
 msgid "Listing"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:3848
+#: hivepress-vendor-analytics.php:3862
 msgid "(deleted listing)"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:3856
+#: hivepress-vendor-analytics.php:3870
 msgid "(untitled listing)"
 msgstr ""
 
 #. translators: 1: month and year, 2: date range.
-#: hivepress-vendor-analytics.php:3880
+#: hivepress-vendor-analytics.php:3894
 #, php-format
 msgid "%1$s (%2$s)"
 msgstr ""
 
 #. translators: %s: date range.
-#: hivepress-vendor-analytics.php:3885
+#: hivepress-vendor-analytics.php:3899
 #, php-format
 msgid "All time (%s)"
 msgstr ""
 
 #. translators: 1: number of days, 2: date range.
-#: hivepress-vendor-analytics.php:3889
+#: hivepress-vendor-analytics.php:3903
 #, php-format
 msgid "Last %1$s days (%2$s)"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4031
-#: hivepress-vendor-analytics.php:4041
+#: hivepress-vendor-analytics.php:4045
+#: hivepress-vendor-analytics.php:4055
 msgid "Analytics report"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4035
+#: hivepress-vendor-analytics.php:4049
 msgid "Print or save as PDF"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4036
+#: hivepress-vendor-analytics.php:4050
 msgid "This report is print-ready: your browser's print dialogue can save it as a PDF."
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4045
+#: hivepress-vendor-analytics.php:4059
 msgid "This listing only"
 msgstr ""
 
 #. translators: %s: date.
-#: hivepress-vendor-analytics.php:4049
+#: hivepress-vendor-analytics.php:4063
 #, php-format
 msgid "Generated %s"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4062
+#: hivepress-vendor-analytics.php:4076
 msgid "Summary"
 msgstr ""
 
 #. translators: %s: month and year, e.g. July 2026.
-#: hivepress-vendor-analytics.php:4067
+#: hivepress-vendor-analytics.php:4081
 #, php-format
 msgid "Changes compare against %s."
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4109
+#: hivepress-vendor-analytics.php:4123
 msgid "Your share of anything refunded since"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4110
+#: hivepress-vendor-analytics.php:4124
 msgid "Earnings after refunds"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4251
+#: hivepress-vendor-analytics.php:4265
 msgid "Generated by Vendor Analytics Pro for HivePress"
 msgstr ""
 
 #. translators: %s: percentage.
-#: hivepress-vendor-analytics.php:4314
+#: hivepress-vendor-analytics.php:4328
 #, php-format
 msgid "Up %s"
 msgstr ""
 
 #. translators: %s: percentage.
-#: hivepress-vendor-analytics.php:4319
+#: hivepress-vendor-analytics.php:4333
 #, php-format
 msgid "Down %s"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4326
+#: hivepress-vendor-analytics.php:4340
 msgid "Vendor analytics report"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4327
+#: hivepress-vendor-analytics.php:4341
 msgid "Site"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4328
+#: hivepress-vendor-analytics.php:4342
 msgid "Vendor"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4334
+#: hivepress-vendor-analytics.php:4348
 msgid "Period"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4335
+#: hivepress-vendor-analytics.php:4349
 msgid "Generated"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4339
+#: hivepress-vendor-analytics.php:4353
 msgid "SUMMARY"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4341
+#: hivepress-vendor-analytics.php:4355
 msgid "Metric"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4342
+#: hivepress-vendor-analytics.php:4356
 msgid "This period"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4343
+#: hivepress-vendor-analytics.php:4357
 msgid "Previous period"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4344
+#: hivepress-vendor-analytics.php:4358
 msgid "Change"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4358
+#: hivepress-vendor-analytics.php:4372
 msgid "Bookings created"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4364
+#: hivepress-vendor-analytics.php:4378
 msgid "Favourites removed"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4407
+#: hivepress-vendor-analytics.php:4421
 msgid "PER-LISTING BREAKDOWN"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4410
+#: hivepress-vendor-analytics.php:4424
 msgid "Rank"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4442
+#: hivepress-vendor-analytics.php:4456
 msgid "SEARCH TERMS"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4642
+#: hivepress-vendor-analytics.php:4656
 msgid "Monthly analytics email"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4643
+#: hivepress-vendor-analytics.php:4657
 msgid "Email me a summary of my listings each month"
 msgstr ""
 
-#: hivepress-vendor-analytics.php:4651
+#: hivepress-vendor-analytics.php:4665
 msgid "Send it even if there was no activity that month"
 msgstr ""
 

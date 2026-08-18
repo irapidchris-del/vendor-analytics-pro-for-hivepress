@@ -4,7 +4,7 @@ Tags: hivepress, analytics, statistics, marketplace, vendors
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.8.1
+Stable tag: 1.8.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,9 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 * The report button in the monthly email works for 90 days after the month it covers, then stops. Treat the link as private: anyone you forward it to can see that month's figures until it expires.
 
 == Changelog ==
+
+= 1.8.2 =
+* Added: on the monthly report, each listing in the per-listing breakdown now links to its public page, opening in a new tab so the report stays put. Suggested by the community. The report is usually opened from the email without being signed in, so the links go to the pages anyone can see rather than to the analytics tabs, which would have asked the reader to log in.
 
 = 1.8.1 =
 * Fixed: the monthly email's two settings appeared partway through submitting a listing and through vendor registration, because those steps reuse the account settings form. They now appear only on the settings page itself.

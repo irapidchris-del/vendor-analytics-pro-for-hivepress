@@ -3,7 +3,7 @@
  * Plugin Name: Vendor Analytics Pro for HivePress
  * Plugin URI: https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress
  * Description: A first-party analytics dashboard for HivePress vendors - views, phone/email click tracking, messages, bookings funnel, earnings, response-time trends, search terms and category benchmarks, stored as daily aggregates with no third-party services.
- * Version: 1.8.1
+ * Version: 1.8.2
  * Author: ChrisB @ HivePress Community
  * Author URI: https://community.hivepress.io/u/chrisb/summary
  * Requires Plugins: hivepress
@@ -43,7 +43,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'HPVA_VERSION', '1.8.1' );
+define( 'HPVA_VERSION', '1.8.2' );
 define( 'HPVA_DB_VERSION', '2' );
 define( 'HPVA_FILE', __FILE__ );
 
@@ -3175,7 +3175,7 @@ function hpva_render_dashboard() {
 	if ( $breakdown ) {
 		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Per-listing breakdown', 'hivepress-vendor-analytics' ) . '</h3>';
 		$out .= '<p class="hpva-sub">' . esc_html__( 'Ranked by views for the selected period, best performer first.', 'hivepress-vendor-analytics' ) . '</p>';
-		$out .= '<div class="hpva-table-wrap">' . hpva_breakdown_table( $breakdown, true ) . '</div>';
+		$out .= '<div class="hpva-table-wrap">' . hpva_breakdown_table( $breakdown, 'analytics' ) . '</div>';
 	}
 
 	if ( ! $views && ! $messages && ! $b_new ) {
@@ -3790,10 +3790,11 @@ function hpva_breakdown_columns() {
  * off mid-column reads as broken rather than scrollable.
  *
  * @param array<int, array<string, int>> $breakdown Per-listing metric sums.
- * @param bool                           $link_rows Whether to link listing titles.
+ * @param string                         $link_mode 'analytics' links titles to each listing's analytics tab,
+ *                                                   'permalink' to its public page, '' for plain text.
  * @return string
  */
-function hpva_breakdown_table( $breakdown, $link_rows ) {
+function hpva_breakdown_table( $breakdown, $link_mode ) {
 	$columns = hpva_breakdown_columns();
 
 	$html = '<table class="hpva-table hpva-table--wide"><thead><tr><th>' . esc_html__( 'Listing', 'hivepress-vendor-analytics' ) . '</th>';
@@ -3812,9 +3813,22 @@ function hpva_breakdown_table( $breakdown, $link_rows ) {
 		$row  = hpva_breakdown_listing( $listing_id );
 		$cell = esc_html( $row['title'] );
 
-		if ( $link_rows && $row['link'] ) {
-			$link = hivepress()->router->get_url( 'listing_analytics_page', [ 'listing_id' => $listing_id ] );
-			$cell = '<a href="' . esc_url( $link ) . '">' . $cell . '</a>';
+		if ( $link_mode && $row['link'] ) {
+			if ( 'permalink' === $link_mode ) {
+
+				// The report is opened from the monthly email's signed link, so
+				// the reader usually has NO session - an analytics-tab link would
+				// bounce every one of them to a login page. The public listing
+				// page works logged out, and a new tab keeps the report open.
+				$link = get_permalink( $listing_id );
+
+				if ( $link ) {
+					$cell = '<a href="' . esc_url( $link ) . '" target="_blank" rel="noopener">' . $cell . '</a>';
+				}
+			} else {
+				$link = hivepress()->router->get_url( 'listing_analytics_page', [ 'listing_id' => $listing_id ] );
+				$cell = '<a href="' . esc_url( $link ) . '">' . $cell . '</a>';
+			}
 		}
 
 		$cell = '<span class="hp-meta hpva-rank">' . esc_html( number_format_i18n( $rank ) ) . '.</span> ' . $cell;
@@ -4240,7 +4254,7 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null )
 		if ( $breakdown ) {
 			$out .= '<h2 class="hpva-h2">' . esc_html__( 'Per-listing breakdown', 'hivepress-vendor-analytics' ) . '</h2>';
 			$out .= '<p class="hpva-sub">' . esc_html__( 'Ranked by views for the selected period, best performer first.', 'hivepress-vendor-analytics' ) . '</p>';
-			$out .= hpva_breakdown_table( $breakdown, false );
+			$out .= hpva_breakdown_table( $breakdown, 'permalink' );
 		}
 	}
 
