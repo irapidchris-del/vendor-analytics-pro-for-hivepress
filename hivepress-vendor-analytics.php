@@ -3,7 +3,7 @@
  * Plugin Name: Vendor Analytics Pro for HivePress
  * Plugin URI: https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress
  * Description: A first-party analytics dashboard for HivePress vendors - views, phone/email click tracking, messages, bookings funnel, earnings, response-time trends, search terms and category benchmarks, stored as daily aggregates with no third-party services.
- * Version: 1.8.2
+ * Version: 1.8.3
  * Author: ChrisB @ HivePress Community
  * Author URI: https://community.hivepress.io/u/chrisb/summary
  * Requires Plugins: hivepress
@@ -43,7 +43,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'HPVA_VERSION', '1.8.2' );
+define( 'HPVA_VERSION', '1.8.3' );
 define( 'HPVA_DB_VERSION', '2' );
 define( 'HPVA_FILE', __FILE__ );
 
@@ -274,6 +274,7 @@ function hpva_update_plugin_info( $result, $action, $args ) {
 		'requires_php'  => $plugin_data['RequiresPHP'],
 		'last_updated'  => $release['published'],
 		'download_link' => $release['package'],
+		'donate_link'   => hpva_get_support_url(),
 		'sections'      => [
 			'description' => wpautop( esc_html( $plugin_data['Description'] ) ),
 			'changelog'   => $release['notes'] ? hpva_release_notes_html( $release['notes'] ) : '<p>' . esc_html__( 'See the GitHub releases page for the changelog.', 'hivepress-vendor-analytics' ) . '</p>',
@@ -298,6 +299,45 @@ function hpva_update_check_link( $links ) {
 }
 
 add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'hpva_update_check_link' );
+
+/**
+ * The author's support page.
+ *
+ * One place, so the Plugins row and the View details popup can never drift apart.
+ *
+ * @return string
+ */
+function hpva_get_support_url() {
+	return 'https://ko-fi.com/chrisbathivepresscommunity';
+}
+
+/**
+ * Adds the house "Donate" link to this plugin's row on the Plugins screen.
+ *
+ * WordPress fires plugin_row_meta for EVERY plugin on the screen, so without the basename
+ * test the link would appear on every row on the site. The markup is copied verbatim from
+ * the house spec in `releasing.md` rather than composed here: every plugin's row has to look
+ * identical and sessions have drifted before. The label is exactly "Donate", matching the
+ * wording WordPress itself uses in the details popup, and the icon is a Dashicon rather than
+ * Font Awesome because Dashicons is the admin's own font and is always loaded there.
+ * WordPress joins row-meta items with " | " itself, so this returns a bare anchor.
+ *
+ * @param array<string> $meta        Row meta links.
+ * @param string        $plugin_file Plugin file the row belongs to.
+ * @return array<string>
+ */
+function hpva_add_row_meta( $meta, $plugin_file ) {
+	if ( plugin_basename( __FILE__ ) === $plugin_file ) {
+		$meta[] = '<a href="' . esc_url( hpva_get_support_url() ) . '" target="_blank" rel="noopener noreferrer">'
+			. '<span class="dashicons dashicons-star-filled" style="font-size:14px;line-height:1.3;"></span> '
+			. esc_html__( 'Donate', 'hivepress-vendor-analytics' )
+			. '</a>';
+	}
+
+	return $meta;
+}
+
+add_filter( 'plugin_row_meta', 'hpva_add_row_meta', 10, 2 );
 add_filter( 'network_admin_plugin_action_links_' . plugin_basename( __FILE__ ), 'hpva_update_check_link' );
 
 /**
