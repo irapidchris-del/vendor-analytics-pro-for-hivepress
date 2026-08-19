@@ -825,3 +825,11 @@ msgstr ""
 #: includes/emails/class-hpva-analytics-summary.php:121
 msgid "View my full report"
 msgstr ""
+
+#: hivepress-vendor-analytics.php:743
+msgid "No releases have been published for Vendor Analytics Pro for HivePress yet, so there is nothing to update to. This is normal for a brand new copy and does not mean anything is wrong."
+msgstr ""
+
+#: hivepress-vendor-analytics.php:746
+msgid "GitHub limits how many update checks one server may make each hour, and this server has reached that limit. Nothing is wrong with the plugin or your site, and checking will work again within the hour."
+msgstr ""
