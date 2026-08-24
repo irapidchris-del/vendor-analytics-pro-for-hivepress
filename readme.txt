@@ -4,7 +4,7 @@ Tags: hivepress, analytics, statistics, marketplace, vendors
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.8.5
+Stable tag: 1.8.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,20 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 * The report button in the monthly email works for 90 days after the month it covers, then stops. Treat the link as private: anyone you forward it to can see that month's figures until it expires.
 
 == Changelog ==
+
+= 1.8.6 =
+* Fixed - search term clicks are now recorded even with page view tracking switched off. Clicks
+  were counted as part of a page view, so turning page views off for privacy left impressions
+  climbing while clicks stayed at zero on every dashboard, export and monthly email, with nothing
+  to say why.
+* Fixed - the diagnostics now report how often the rate limiter has refused an event, so a
+  throttled undercount can be told apart from a quiet week. Behind Cloudflare or any proxy that
+  does not pass the visitor's address on, every visitor shares one allowance; a new
+  `hpva_client_ip` filter lets a site supply the real address.
+* Fixed - two internal markers are now loaded with the rest of the site's options rather than
+  fetched separately on every page.
+* Fixed - deleting the plugin now also clears the update check's own leftovers and cancels its
+  background update check.
 
 = 1.8.5 =
 * Fixed - "View details" is back on the Plugins screen. WordPress only offers that link for a

@@ -3,7 +3,7 @@
  * Plugin Name: Vendor Analytics Pro for HivePress
  * Plugin URI: https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress
  * Description: A first-party analytics dashboard for HivePress vendors - views, phone/email click tracking, messages, bookings funnel, earnings, response-time trends, search terms and category benchmarks, stored as daily aggregates with no third-party services.
- * Version: 1.8.5
+ * Version: 1.8.6
  * Author: ChrisB @ HivePress Community
  * Author URI: https://community.hivepress.io/u/chrisb/summary
  * Requires Plugins: hivepress
@@ -43,7 +43,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'HPVA_VERSION', '1.8.5' );
+define( 'HPVA_VERSION', '1.8.6' );
 define( 'HPVA_DB_VERSION', '2' );
 define( 'HPVA_FILE', __FILE__ );
 
@@ -962,7 +962,9 @@ function hpva_install_tables() {
 		) {$charset_collate};"
 	);
 
-	update_option( 'hpva_db_version', HPVA_DB_VERSION, false );
+	// Autoloaded: the late table check in hpva_init() reads this on every request. See the note in
+	// hpva_maybe_upgrade(), which also flips it for installs that already hold the row.
+	update_option( 'hpva_db_version', HPVA_DB_VERSION, true );
 }
 
 /**
@@ -1918,7 +1920,24 @@ function hpva_maybe_upgrade() {
 		delete_option( 'hp_vendor_analytics_monthly_default' );
 	}
 
-	update_option( 'hpva_version', HPVA_VERSION, false );
+	/*
+	 * Both version markers are read during bootstrap on EVERY request - hpva_version here, and
+	 * hpva_db_version by the late table check in hpva_init() - and both were written with autoload
+	 * off, so each cost its own query on every uncached page load. Small strings read on every
+	 * request are exactly what autoload is for.
+	 *
+	 * update_option() cannot make this change on its own: it returns early when the value is
+	 * unchanged and never reaches the autoload column (wp-includes/option.php:923), so an existing
+	 * install would keep both rows unautoloaded for ever. wp_set_option_autoload() is WordPress
+	 * 6.4 and this plugin supports 6.0, so it is guarded; on older WordPress the rows simply stay
+	 * as they are, which is what they do today.
+	 */
+	if ( function_exists( 'wp_set_option_autoload' ) ) {
+		wp_set_option_autoload( 'hpva_version', true );
+		wp_set_option_autoload( 'hpva_db_version', true );
+	}
+
+	update_option( 'hpva_version', HPVA_VERSION, true );
 }
 
 /* --- Search terms -------------------------------------------------------- */
@@ -2038,9 +2057,18 @@ Beacon: script + REST endpoint.
 function hpva_enqueue_tracker() {
 	$track_views  = (bool) hpva_get_option( 'vendor_analytics_views', true );
 	$track_clicks = (bool) hpva_get_option( 'vendor_analytics_clicks', true );
+	$track_search = (bool) hpva_get_option( 'vendor_analytics_search', true );
 	$search_term  = hpva_current_search_term();
 
-	if ( ! $track_views && ! $track_clicks && '' === $search_term ) {
+	/*
+	 * Search-term tracking needs the beacon in two places: the results page, where it remembers
+	 * the term, and the LISTING page, where the click is credited. Only the first of those has a
+	 * search term of its own, so a gate written against $search_term alone kept the script off
+	 * listing pages entirely whenever page views and contact clicks were both switched off -
+	 * which is why turning page views off used to leave search-term clicks permanently at nought
+	 * while impressions carried on accumulating.
+	 */
+	if ( ! $track_views && ! $track_clicks && ! $track_search ) {
 		return;
 	}
 
@@ -2075,6 +2103,12 @@ function hpva_enqueue_tracker() {
 		return;
 	}
 
+	// With views and clicks both off, the beacon has a job on a search results page and on a
+	// listing page, and none at all on a vendor page. Keep it off that one.
+	if ( ! $track_views && ! $track_clicks && ! $listing_id && '' === $search_term ) {
+		return;
+	}
+
 	wp_enqueue_script(
 		'hpva-tracker',
 		plugins_url( 'assets/js/tracker.js', HPVA_FILE ),
@@ -2092,6 +2126,7 @@ function hpva_enqueue_tracker() {
 				'vendor'   => $listing_id ? hpva_vendor_id_from_listing( $listing_id ) : $vendor_id,
 				'views'    => $track_views ? 1 : 0,
 				'clicks'   => $track_clicks ? 1 : 0,
+				'search'   => $track_search ? 1 : 0,
 				'term'     => $search_term,
 			]
 		) . ';',
@@ -2175,18 +2210,83 @@ function hpva_register_rest() {
  * @return bool Whether the current request exceeds the limit.
  */
 function hpva_rate_limited( $scope ) {
-	$ip     = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	$ip     = hpva_client_ip();
 	$slot   = (int) floor( time() / ( 10 * MINUTE_IN_SECONDS ) );
 	$bucket = 'hpva_rl_' . md5( $scope . '|' . $ip . '|' . $slot );
 	$count  = (int) get_transient( $bucket );
 
 	if ( $count >= 60 ) {
+		hpva_record_throttle();
+
 		return true;
 	}
 
 	set_transient( $bucket, $count + 1, 10 * MINUTE_IN_SECONDS );
 
 	return false;
+}
+
+/**
+ * The address the rate limiter buckets a visitor by.
+ *
+ * REMOTE_ADDR is the only address the server can vouch for, so it is the only one used by
+ * default: X-Forwarded-For and friends are supplied by whoever made the request and a limiter
+ * that trusted them could be stepped around by typing a new value into a header.
+ *
+ * That honesty has a cost, and an owner needs to know what it is. Behind Cloudflare, any reverse
+ * proxy without real-IP restoration, or plain carrier-grade NAT, REMOTE_ADDR is the same address
+ * for every visitor, so the whole site shares one bucket and the counts silently cap at 60 events
+ * per ten minutes - 8,640 a day across views, contact clicks and search clicks together. Failing
+ * closed is defensible; presenting a throttled undercount as a complete one is not, which is why
+ * hpva_record_throttle() below exists and the diagnostics block reports it.
+ *
+ * A site that HAS restored the real address (Cloudflare's own WordPress plugin, an nginx
+ * real_ip_header rule, or mu-plugin code that rewrites REMOTE_ADDR) needs nothing here. A site
+ * that wants to bucket by a header it has itself verified as trustworthy can supply it:
+ *
+ *     add_filter( 'hpva_client_ip', function( $ip ) {
+ *         return isset( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ? $_SERVER['HTTP_CF_CONNECTING_IP'] : $ip;
+ *     } );
+ *
+ * That is an explicit decision by the site owner, on a site where the header cannot be reached
+ * except through their proxy. It is deliberately not the default.
+ *
+ * @return string Bucket key for this visitor, never empty.
+ */
+function hpva_client_ip() {
+	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+
+	/**
+	 * Filters the address the analytics rate limiter buckets a visitor by.
+	 *
+	 * @param string $ip Address from REMOTE_ADDR, or '' when the server did not supply one.
+	 * @return string Address.
+	 */
+	$ip = (string) apply_filters( 'hpva_client_ip', $ip );
+
+	/*
+	 * An absent REMOTE_ADDR is its own case, not an empty string sharing a bucket with every other
+	 * address-less request. It happens on CLI and on some misconfigured proxies, and left as ''
+	 * those requests all counted against one another for no reason anybody could see. Marked so
+	 * the diagnostics can say so.
+	 */
+	return '' !== trim( $ip ) ? $ip : '_no_remote_addr';
+}
+
+/**
+ * Records that the rate limiter refused an event.
+ *
+ * Counted per day and kept for a week. The entire job of this plugin is counting, so an owner
+ * has to be able to tell "quiet week" from "everything after the first 8,640 events was dropped",
+ * and without this the two look identical on every dashboard, CSV and monthly email.
+ *
+ * @return void
+ */
+function hpva_record_throttle() {
+	$key   = 'hpva_throttled_' . gmdate( 'Ymd' );
+	$count = (int) get_transient( $key );
+
+	set_transient( $key, $count + 1, WEEK_IN_SECONDS );
 }
 
 /**
@@ -2198,6 +2298,39 @@ function hpva_is_bot() {
 	$ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
 
 	return '' === $ua || preg_match( '/bot|crawl|spider|slurp|preview|facebookexternalhit|headless/i', $ua );
+}
+
+/**
+ * Credits a search term with a click on one listing, if the request carries one.
+ *
+ * The term is re-normalised here rather than trusted: it arrives from a public endpoint, and it
+ * has to match the impression rows character for character to be worth anything. The listing is
+ * checked as well, so a term can only ever be credited against a real published listing.
+ *
+ * @param WP_REST_Request $request Request object.
+ * @param int             $listing_id Listing ID.
+ * @return void
+ */
+function hpva_maybe_record_term_click( $request, $listing_id ) {
+	$listing_id = (int) $listing_id;
+
+	if ( ! $listing_id ) {
+		return;
+	}
+
+	$raw_term = $request->get_param( 't' );
+
+	if ( ! is_string( $raw_term ) ) {
+		return;
+	}
+
+	$listing_post = get_post( $listing_id );
+
+	if ( ! $listing_post || 'hp_listing' !== $listing_post->post_type || 'publish' !== $listing_post->post_status ) {
+		return;
+	}
+
+	hpva_record_term_click( hpva_normalise_term( $raw_term ), $listing_id );
 }
 
 /**
@@ -2229,6 +2362,20 @@ function hpva_rest_track( $request ) {
 	$view_metrics  = [ 'view', 'vendor_view' ];
 	$click_metrics = [ 'phone_click', 'email_click' ];
 
+	/*
+	 * A search-term click with no page view behind it. Search terms are their own feature under
+	 * their own setting, and used to be recorded only as a side effect of the view beacon below,
+	 * so switching page views off zeroed them for ever. Gated on the search setting alone, and it
+	 * records nothing but the term-to-listing credit.
+	 */
+	if ( 'term_click' === $metric ) {
+		if ( hpva_get_option( 'vendor_analytics_search', true ) ) {
+			hpva_maybe_record_term_click( $request, $listing_id );
+		}
+
+		return new WP_REST_Response( null, 204 );
+	}
+
 	if ( in_array( $metric, $view_metrics, true ) && ! hpva_get_option( 'vendor_analytics_views', true ) ) {
 		return new WP_REST_Response( null, 204 );
 	}
@@ -2256,16 +2403,9 @@ function hpva_rest_track( $request ) {
 				// value is never trusted for listing metrics.
 				hpva_record( $metric, hpva_vendor_id_from_listing( $listing_id ), $listing_id );
 
-				// A view that followed a search credits that search. The term
-				// is re-normalised here rather than trusted: it arrives from a
-				// public endpoint, and it has to match the impression rows
-				// character for character to be worth anything.
+				// A view that followed a search credits that search.
 				if ( 'view' === $metric && hpva_get_option( 'vendor_analytics_search', true ) ) {
-					$raw_term = $request->get_param( 't' );
-
-					if ( is_string( $raw_term ) ) {
-						hpva_record_term_click( hpva_normalise_term( $raw_term ), $listing_id );
-					}
+					hpva_maybe_record_term_click( $request, $listing_id );
 				}
 			}
 		} elseif ( $vendor_id && in_array( $metric, $click_metrics, true ) ) {
@@ -3833,6 +3973,24 @@ function hpva_admin_diagnostics() {
 	// Same raw read as the Messages extension itself (no default): absent
 	// means storage off and messages go by email only.
 	$lines[] = 'message + response metrics need the Messages extension AND its "Store messages" setting: ' . ( class_exists( '\HivePress\Models\Message' ) ? ( get_option( 'hp_message_enable_storage' ) ? 'storage on' : 'storage OFF - messages are email-only and can never be counted' ) : 'Messages extension inactive' );
+	/*
+	 * How often the rate limiter refused an event, so a throttled undercount cannot be mistaken
+	 * for low traffic. On a site behind a proxy that does not restore the visitor's address, every
+	 * visitor shares one bucket and these numbers climb every day; see hpva_client_ip().
+	 */
+	$throttled = [];
+
+	for ( $hpva_day = 0; $hpva_day < 7; $hpva_day++ ) {
+		$hpva_date  = gmdate( 'Ymd', time() - $hpva_day * DAY_IN_SECONDS );
+		$hpva_count = (int) get_transient( 'hpva_throttled_' . $hpva_date );
+
+		if ( $hpva_count ) {
+			$throttled[] = $hpva_date . ':' . $hpva_count;
+		}
+	}
+
+	$lines[] = 'events refused by the rate limiter, last 7 days: ' . ( $throttled ? implode( ' ', $throttled ) . ' - if these are large, the visitor address is probably not reaching WordPress and every visitor is sharing one bucket (see the hpva_client_ip filter)' : 'none' );
+	$lines[] = 'rate limiter is bucketing this request as: ' . hpva_client_ip();
 	$lines[] = 'daily table: ' . ( $daily_exists ? 'exists, ' . (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$daily}" ) . ' rows' : 'MISSING - deactivate and reactivate the plugin' ); // phpcs:ignore
 	$lines[] = 'terms table: ' . ( $terms_exists ? 'exists, ' . (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$terms}" ) . ' rows' : 'MISSING - deactivate and reactivate the plugin' ); // phpcs:ignore
 

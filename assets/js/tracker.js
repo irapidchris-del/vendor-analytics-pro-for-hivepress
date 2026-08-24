@@ -53,8 +53,8 @@
 
 		var data = { m: metric, l: cfg.listing || 0, v: cfg.vendor || 0 };
 
-		// Only a listing view can be attributed to a search.
-		if ( 'view' === metric ) {
+		// Only a listing view, or a standalone search-click, can be attributed to a search.
+		if ( 'view' === metric || 'term_click' === metric ) {
 			var term = recentSearch();
 
 			if ( term ) {
@@ -100,6 +100,25 @@
 			}
 		} catch ( e ) {
 			send( cfg.listing ? 'view' : 'vendor_view' );
+		}
+	} else if ( cfg.search && cfg.listing && recentSearch() ) {
+
+		// A search click used to ride entirely on the view beacon, so switching page views off -
+		// the only reason that setting exists, and a privacy one - silently zeroed search-term
+		// clicks for ever: impressions kept accumulating while clicks stayed at nought on every
+		// dashboard, every CSV and every monthly email, with nothing anywhere explaining why. They
+		// are two different features under two different settings, so the click now stands on its
+		// own. Same once-per-session rule, keyed on the listing AND the term, so opening the same
+		// listing from two different searches credits both.
+		var clickKey = 'hpvaTl' + cfg.listing + '|' + recentSearch();
+
+		try {
+			if ( ! sessionStorage.getItem( clickKey ) ) {
+				sessionStorage.setItem( clickKey, '1' );
+				send( 'term_click' );
+			}
+		} catch ( e ) {
+			send( 'term_click' );
 		}
 	}
 
