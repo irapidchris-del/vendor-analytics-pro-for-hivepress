@@ -2,13 +2,13 @@
 Contributors: chrisb
 Tags: hivepress, analytics, statistics, marketplace, vendors
 Requires at least: 6.0
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.8.6
+Stable tag: 1.9.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A first-party analytics dashboard for HivePress vendors: views, contact clicks, messages, bookings funnel, earnings, response times, search terms and category benchmarks.
+First-party analytics for HivePress vendors: views, contact clicks, messages, bookings, earnings, response times and search terms.
 
 == Description ==
 
@@ -41,13 +41,54 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 * The information marks beside "Earnings" and "Avg first response" need a mouse, so like HivePress's own tooltips they are hidden on phones and do not print. The downloadable report states what both figures measure in plain text instead.
 * The "View my full report" button in the monthly email is a styled link. Outlook for Windows ignores the styling that makes it look like a button, so there it appears as bold dark text instead. It still works, and every other common mail client renders the button properly.
 * Editing the email under HivePress > Emails replaces the whole body, not just the subject. If you rewrite it, keep `%report_url%` somewhere or your vendors lose the link to their report.
-* The two monthly email controls only appear on a vendor's settings page while both "Monthly emails" and "Vendor choice" are switched on under HivePress > Settings > Analytics. With either off, vendors see nothing about it at all, which is intended: there is no point offering somebody a choice that cannot take effect.
+* The two monthly email controls only appear on a vendor's settings page while both "Monthly reports" and "Vendor choice" are switched on under HivePress > Settings > Analytics. With either off, vendors see nothing about it at all, which is intended: there is no point offering somebody a choice that cannot take effect.
 * Switching "Vendor choice" off means every vendor is emailed, including any who had previously turned it off for themselves. Their choice is remembered rather than deleted, and applies again the moment you switch vendor choice back on.
 * There is no "email nobody until they ask" mode. Switching the monthly report on is the decision to send it, and vendors turn it off for themselves if they would rather not receive it. If you need consent first, tell your vendors before you switch it on.
 * The monthly email goes out when the site's daily scheduled job runs on the first of the month. If scheduled jobs are not running on your site, it will not send; the same job also handles data retention. Site Health reports this as "A scheduled event is late".
 * The report button in the monthly email works for 90 days after the month it covers, then stops. Treat the link as private: anyone you forward it to can see that month's figures until it expires.
 
 == Changelog ==
+
+= 1.9.3 =
+* Internal name change so this extension follows the standard WordPress plugin
+  rules. Nothing you see or click has changed, and every setting, table and
+  figure is untouched.
+* Please read this if you have translated this extension yourself. The
+  identifier the extension uses to look up its translations has changed from
+  "hivepress-vendor-analytics" to "vendor-analytics-pro-for-hivepress", to match
+  the plugin folder as WordPress expects. After this update your existing
+  translation will no longer be found, and the extension will show its original
+  English wording again. Nothing is lost: your translated wording is still in
+  your translation file. To bring it back in Loco Translate, go to Loco
+  Translate > Plugins > Vendor Analytics Pro for HivePress, create the language
+  again, and choose to copy from your existing file when Loco offers it, or use
+  its "Sync" button. If you have not translated this extension, there is nothing
+  for you to do.
+
+= 1.9.2 =
+* Housekeeping only: nothing on your settings screen has moved, changed or
+  behaves differently. The settings-screen code this extension shares with the
+  others in the family was reformatted to match them line for line, so that a
+  fix made to one of them can be checked against all of them in one go.
+
+= 1.9.1 =
+* The settings tab now carries the same controls as the other extensions in this family: the quick
+  links stay in view as you scroll, a Save Changes tab sits on the right edge of the screen
+  wherever you are on the page (a bar across the bottom on a phone), and a back-to-top button
+  appears once you have scrolled down. Whichever of these extensions you have installed, you see
+  one set of controls, in the same places.
+* The quick links now say "Jump to a section:" so it is clear what the row of links is for.
+* The settings styles and script are no longer loaded on the other HivePress settings tabs. They
+  did nothing there, but they were still being downloaded on every tab.
+
+= 1.9.0 =
+* Added - quick links at the top of the settings tab jump straight to each section, with a divider
+  line between sections so the boundaries are visible when scrolling.
+* Changed - the "Vendor choice" and "Quiet months" settings now only appear while "Monthly
+  reports" is ticked, since neither can do anything without it. They show and hide as the box is
+  ticked, with nothing to save first.
+* Changed - shorter settings descriptions that keep to the main points, wrapped at a readable
+  width on wide screens.
 
 = 1.8.6 =
 * Fixed - search term clicks are now recorded even with page view tracking switched off. Clicks

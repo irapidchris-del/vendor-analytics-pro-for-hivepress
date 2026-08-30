@@ -41,8 +41,8 @@ class Hpva_Analytics_Summary extends Email {
 		$meta = hp\merge_arrays(
 			[
 				/* translators: %s: recipient. */
-				'label'       => sprintf( esc_html__( 'Monthly Analytics Summary (%s)', 'hivepress-vendor-analytics' ), hivepress()->translator->get_string( 'vendor' ) ),
-				'description' => esc_html__( 'This email is sent on the first of each month, summarising the month just gone. Who receives it is set under HivePress > Settings > Analytics.', 'hivepress-vendor-analytics' ),
+				'label'       => sprintf( esc_html__( 'Monthly Analytics Summary (%s)', 'vendor-analytics-pro-for-hivepress' ), hivepress()->translator->get_string( 'vendor' ) ),
+				'description' => esc_html__( 'This email is sent on the first of each month, summarising the month just gone. Who receives it is set under HivePress > Settings > Analytics.', 'vendor-analytics-pro-for-hivepress' ),
 				'recipient'   => hivepress()->translator->get_string( 'vendor' ),
 
 				'tokens'      => [
@@ -81,12 +81,13 @@ class Hpva_Analytics_Summary extends Email {
 		// setting. Note the leading backslash: this file is in the
 		// HivePress\Emails namespace and hpva_get_option() is global.
 		$footer = ( ! function_exists( 'hpva_get_option' ) || \hpva_get_option( 'vendor_analytics_monthly_vendors', true ) )
-			? esc_html__( 'To stop receiving this email, turn it off in your account settings: %settings_url%', 'hivepress-vendor-analytics' )
-			: esc_html__( 'This email is sent by the site owner. Contact them if you would rather not receive it.', 'hivepress-vendor-analytics' );
+			// translators: %settings_url% is the link to the vendor's account settings page.
+			? esc_html__( 'To stop receiving this email, turn it off in your account settings: %settings_url%', 'vendor-analytics-pro-for-hivepress' )
+			: esc_html__( 'This email is sent by the site owner. Contact them if you would rather not receive it.', 'vendor-analytics-pro-for-hivepress' );
 
 		$args = hp\merge_arrays(
 			[
-				'subject' => esc_html__( 'Your listings last month', 'hivepress-vendor-analytics' ),
+				'subject' => esc_html__( 'Your listings last month', 'vendor-analytics-pro-for-hivepress' ),
 
 				// This body is written as real HTML, unlike every core HivePress
 				// email, and both reasons are the same one: it is the first
@@ -108,17 +109,23 @@ class Hpva_Analytics_Summary extends Email {
 				// never have to carry markup. Note an admin who edits this email
 				// replaces the body wholesale, and their version is run through
 				// the_content, so it gets its paragraphs from wpautop instead.
-				'body'    => '<p>' . esc_html__( 'Hi, %user_name%! Here is how your listings did in %period%.', 'hivepress-vendor-analytics' ) . '</p>'
+				// translators: %user_name% is the vendor's display name; %period% is the month covered.
+				'body'    => '<p>' . esc_html__( 'Hi, %user_name%! Here is how your listings did in %period%.', 'vendor-analytics-pro-for-hivepress' ) . '</p>'
 					. '<p>'
-					. esc_html__( 'Listing views: %listing_views%', 'hivepress-vendor-analytics' ) . '<br>'
-					. esc_html__( 'Profile views: %profile_views%', 'hivepress-vendor-analytics' ) . '<br>'
-					. esc_html__( 'Messages received: %messages%', 'hivepress-vendor-analytics' ) . '<br>'
-					. esc_html__( 'Bookings confirmed: %bookings%', 'hivepress-vendor-analytics' ) . '<br>'
-					. esc_html__( 'Earnings: %earnings%', 'hivepress-vendor-analytics' )
+					// translators: %listing_views% is a number.
+					. esc_html__( 'Listing views: %listing_views%', 'vendor-analytics-pro-for-hivepress' ) . '<br>'
+					// translators: %profile_views% is a number.
+					. esc_html__( 'Profile views: %profile_views%', 'vendor-analytics-pro-for-hivepress' ) . '<br>'
+					// translators: %messages% is a number.
+					. esc_html__( 'Messages received: %messages%', 'vendor-analytics-pro-for-hivepress' ) . '<br>'
+					// translators: %bookings% is a number.
+					. esc_html__( 'Bookings confirmed: %bookings%', 'vendor-analytics-pro-for-hivepress' ) . '<br>'
+					// translators: %earnings% is a formatted money amount.
+					. esc_html__( 'Earnings: %earnings%', 'vendor-analytics-pro-for-hivepress' )
 					. '</p>'
-					. '<p>' . esc_html__( 'Your full report for the month shows your best performing listings and the searches that found you.', 'hivepress-vendor-analytics' ) . '</p>'
+					. '<p>' . esc_html__( 'Your full report for the month shows your best performing listings and the searches that found you.', 'vendor-analytics-pro-for-hivepress' ) . '</p>'
 					. '<p><a href="%report_url%" style="display:inline-block;padding:12px 22px;background:#4a5568;color:#ffffff;text-decoration:none;border-radius:3px;font-weight:600">'
-					. esc_html__( 'View my full report', 'hivepress-vendor-analytics' )
+					. esc_html__( 'View my full report', 'vendor-analytics-pro-for-hivepress' )
 					. '</a></p>'
 					. '<p>' . $footer . '</p>',
 			],

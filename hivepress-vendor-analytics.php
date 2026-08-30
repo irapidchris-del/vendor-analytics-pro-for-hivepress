@@ -3,14 +3,14 @@
  * Plugin Name: Vendor Analytics Pro for HivePress
  * Plugin URI: https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress
  * Description: A first-party analytics dashboard for HivePress vendors - views, phone/email click tracking, messages, bookings funnel, earnings, response-time trends, search terms and category benchmarks, stored as daily aggregates with no third-party services.
- * Version: 1.8.6
+ * Version: 1.9.3
  * Author: ChrisB @ HivePress Community
  * Author URI: https://community.hivepress.io/u/chrisb/summary
  * Requires Plugins: hivepress
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * License: GPLv2 or later
- * Text Domain: hivepress-vendor-analytics
+ * Text Domain: vendor-analytics-pro-for-hivepress
  * Domain Path: /languages/
  * Update URI: https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress
  *
@@ -43,7 +43,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'HPVA_VERSION', '1.8.6' );
+define( 'HPVA_VERSION', '1.9.3' );
 define( 'HPVA_DB_VERSION', '2' );
 define( 'HPVA_FILE', __FILE__ );
 
@@ -686,7 +686,7 @@ function hpva_update_plugin_info( $result, $action, $args ) {
 		'donate_link'   => hpva_get_support_url(),
 		'sections'      => [
 			'description' => wpautop( esc_html( $plugin_data['Description'] ) ),
-			'changelog'   => $release['notes'] ? hpva_release_notes_html( $release['notes'] ) : '<p>' . esc_html__( 'See the GitHub releases page for the changelog.', 'hivepress-vendor-analytics' ) . '</p>',
+			'changelog'   => $release['notes'] ? hpva_release_notes_html( $release['notes'] ) : '<p>' . esc_html__( 'See the GitHub releases page for the changelog.', 'vendor-analytics-pro-for-hivepress' ) . '</p>',
 		],
 	];
 }
@@ -701,7 +701,7 @@ add_filter( 'plugins_api', 'hpva_update_plugin_info', 10, 3 );
  */
 function hpva_update_check_link( $links ) {
 	if ( current_user_can( 'update_plugins' ) ) {
-		$links[] = '<a href="' . esc_url( wp_nonce_url( self_admin_url( 'plugins.php?hpva_check_updates=1' ), 'hpva_check_updates' ) ) . '">' . esc_html__( 'Check for updates', 'hivepress-vendor-analytics' ) . '</a>';
+		$links[] = '<a href="' . esc_url( wp_nonce_url( self_admin_url( 'plugins.php?hpva_check_updates=1' ), 'hpva_check_updates' ) ) . '">' . esc_html__( 'Check for updates', 'vendor-analytics-pro-for-hivepress' ) . '</a>';
 	}
 
 	return $links;
@@ -739,7 +739,7 @@ function hpva_add_row_meta( $meta, $plugin_file ) {
 	if ( plugin_basename( __FILE__ ) === $plugin_file ) {
 		$meta[] = '<a href="' . esc_url( hpva_get_support_url() ) . '" target="_blank" rel="noopener noreferrer">'
 			. '<span class="dashicons dashicons-star-filled" style="font-size:14px;line-height:1.3;"></span> '
-			. esc_html__( 'Donate', 'hivepress-vendor-analytics' )
+			. esc_html__( 'Donate', 'vendor-analytics-pro-for-hivepress' )
 			. '</a>';
 	}
 
@@ -813,19 +813,19 @@ function hpva_update_check_notice() {
 		$release = hpva_get_latest_release();
 
 		/* translators: %s: new version number. */
-		$message = sprintf( __( 'A new version of Vendor Analytics Pro for HivePress (%s) is available.', 'hivepress-vendor-analytics' ), $release ? $release['version'] : '' );
+		$message = sprintf( __( 'A new version of Vendor Analytics Pro for HivePress (%s) is available.', 'vendor-analytics-pro-for-hivepress' ), $release ? $release['version'] : '' );
 		$class   = 'notice-success';
 	} elseif ( 'none' === $status ) {
-		$message = __( 'Vendor Analytics Pro for HivePress is up to date.', 'hivepress-vendor-analytics' );
+		$message = __( 'Vendor Analytics Pro for HivePress is up to date.', 'vendor-analytics-pro-for-hivepress' );
 		$class   = 'notice-success';
 	} elseif ( 'empty' === $status ) {
-		$message = __( 'No releases have been published for Vendor Analytics Pro for HivePress yet, so there is nothing to update to. This is normal for a brand new copy and does not mean anything is wrong.', 'hivepress-vendor-analytics' );
+		$message = __( 'No releases have been published for Vendor Analytics Pro for HivePress yet, so there is nothing to update to. This is normal for a brand new copy and does not mean anything is wrong.', 'vendor-analytics-pro-for-hivepress' );
 		$class   = 'notice-info';
 	} elseif ( 'limited' === $status ) {
-		$message = __( 'GitHub limits how many update checks one server may make each hour, and this server has reached that limit. Nothing is wrong with the plugin or your site, and checking will work again within the hour.', 'hivepress-vendor-analytics' );
+		$message = __( 'GitHub limits how many update checks one server may make each hour, and this server has reached that limit. Nothing is wrong with the plugin or your site, and checking will work again within the hour.', 'vendor-analytics-pro-for-hivepress' );
 		$class   = 'notice-warning';
 	} elseif ( 'error' === $status ) {
-		$message = __( 'Could not reach GitHub to check for updates. Please try again later.', 'hivepress-vendor-analytics' );
+		$message = __( 'Could not reach GitHub to check for updates. Please try again later.', 'vendor-analytics-pro-for-hivepress' );
 		$class   = 'notice-error';
 	} else {
 		return;
@@ -868,7 +868,7 @@ function hpva_fix_update_directory( $source, $remote_source, $upgrader, $hook_ex
 	}
 
 	if ( ! $wp_filesystem->move( untrailingslashit( $source ), untrailingslashit( $target ) ) ) {
-		return new \WP_Error( 'hpva_rename_failed', __( 'Could not rename the update directory.', 'hivepress-vendor-analytics' ) );
+		return new \WP_Error( 'hpva_rename_failed', __( 'Could not rename the update directory.', 'vendor-analytics-pro-for-hivepress' ) );
 	}
 
 	return $target;
@@ -1001,20 +1001,24 @@ add_action( 'plugins_loaded', 'hpva_init' );
 // lives outside the function_exists( 'hivepress' ) gate in hpva_init().
 add_action( 'hpva_daily_maintenance', 'hpva_prune' );
 
-// Our folder name (vendor-analytics-pro-for-hivepress) deliberately differs
-// from our text domain (hivepress-vendor-analytics), so core's automatic
-// per-extension textdomain load - which derives the domain from the folder
-// name - registers the wrong domain and our bundled languages/ folder would
-// never load. Registering the custom path ourselves (on init, per the WP
-// 6.7+ timing rule) makes a .mo shipped or Loco-saved in the plugin's own
-// languages/ work; translations in wp-content/languages/plugins/ load
-// just-in-time either way.
-add_action(
-	'init',
-	function () {
-		load_plugin_textdomain( 'hivepress-vendor-analytics', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-	}
-);
+// There is deliberately NO load_plugin_textdomain() call here, and adding one
+// back would be a regression. Up to 1.9.2 the text domain was
+// 'hivepress-vendor-analytics' while the folder is
+// 'vendor-analytics-pro-for-hivepress', so core's automatic per-plugin load -
+// which keys off the FOLDER name - registered a domain nothing used, and the
+// call was needed to register the custom path by hand. 1.9.3 renamed the domain
+// to match the folder, so core now finds
+// wp-content/languages/plugins/vendor-analytics-pro-for-hivepress-{locale}.mo
+// just in time on its own (WP_Textdomain_Registry scans WP_LANG_DIR/plugins,
+// wp-includes/class-wp-textdomain-registry.php:286-297, WP 7.1). That matches
+// every official HivePress extension, none of which calls it, and it clears
+// Plugin Check's load_plugin_textdomainFound warning.
+//
+// The one thing the call still bought us was loading a .mo sitting in this
+// plugin's OWN languages/ folder, which is not worth keeping: WordPress deletes
+// the whole plugin folder on update, so a translation saved there never
+// survives the next release anyway. Only add the call back if we ever bundle
+// finished translations in the package, and then on 'init', never earlier.
 
 /**
  * Bootstraps the plugin once all plugins are loaded.
@@ -1028,7 +1032,7 @@ function hpva_init() {
 			function () {
 				// Dismissible but not persistent: it reappears while the
 				// problem remains, and the admin can clear the screen.
-				echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Vendor Analytics Pro requires the HivePress plugin to be active.', 'hivepress-vendor-analytics' ) . '</p></div>';
+				echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Vendor Analytics Pro requires the HivePress plugin to be active.', 'vendor-analytics-pro-for-hivepress' ) . '</p></div>';
 			}
 		);
 		return;
@@ -1054,6 +1058,9 @@ function hpva_init() {
 
 	// Beacon script on listing/vendor pages.
 	add_action( 'wp_enqueue_scripts', 'hpva_enqueue_tracker' );
+
+	// Quick links and section dividers on the settings screen.
+	add_action( 'admin_enqueue_scripts', 'hpva_enqueue_admin' );
 
 	hpva_maybe_upgrade();
 
@@ -1102,65 +1109,65 @@ Settings.
  */
 function hpva_register_settings( $settings ) {
 	$settings['vendor_analytics'] = [
-		'title'    => __( 'Analytics', 'hivepress-vendor-analytics' ),
+		'title'    => __( 'Analytics', 'vendor-analytics-pro-for-hivepress' ),
 		'_order'   => 910,
 
 		'sections' => [
 			'tracking'  => [
-				'title'       => __( 'Tracking', 'hivepress-vendor-analytics' ),
-				'description' => __( 'Everything is measured on your own site with no third-party analytics services. Data collection starts when the plugin is activated.', 'hivepress-vendor-analytics' ),
+				'title'       => __( 'Tracking', 'vendor-analytics-pro-for-hivepress' ),
+				'description' => __( 'Everything is measured on your own site with no third-party analytics services. Data collection starts when the plugin is activated.', 'vendor-analytics-pro-for-hivepress' ),
 				'_order'      => 10,
 
 				'fields'      => [
 					'vendor_analytics_views'    => [
-						'label'   => __( 'Track page views', 'hivepress-vendor-analytics' ),
-						'caption' => __( 'Count listing and vendor profile views (JavaScript beacon, cache-safe)', 'hivepress-vendor-analytics' ),
+						'label'   => __( 'Track page views', 'vendor-analytics-pro-for-hivepress' ),
+						'caption' => __( 'Count listing and vendor profile views (JavaScript beacon, cache-safe)', 'vendor-analytics-pro-for-hivepress' ),
 						'type'    => 'checkbox',
 						'default' => true,
 						'_order'  => 10,
 					],
 
 					'vendor_analytics_clicks'   => [
-						'label'   => __( 'Track contact clicks', 'hivepress-vendor-analytics' ),
-						'caption' => __( 'Count clicks on phone (tel:) and email (mailto:) links on listing and vendor pages', 'hivepress-vendor-analytics' ),
+						'label'   => __( 'Track contact clicks', 'vendor-analytics-pro-for-hivepress' ),
+						'caption' => __( 'Count clicks on phone (tel:) and email (mailto:) links on listing and vendor pages', 'vendor-analytics-pro-for-hivepress' ),
 						'type'    => 'checkbox',
 						'default' => true,
 						'_order'  => 20,
 					],
 
 					'vendor_analytics_search'   => [
-						'label'   => __( 'Track search terms', 'hivepress-vendor-analytics' ),
-						'caption' => __( 'Record which keyword searches surfaced each listing in results', 'hivepress-vendor-analytics' ),
+						'label'   => __( 'Track search terms', 'vendor-analytics-pro-for-hivepress' ),
+						'caption' => __( 'Record which keyword searches surfaced each listing in results', 'vendor-analytics-pro-for-hivepress' ),
 						'type'    => 'checkbox',
 						'default' => true,
 						'_order'  => 30,
 					],
 
 					'vendor_analytics_earnings' => [
-						'label'   => __( 'Track earnings', 'hivepress-vendor-analytics' ),
-						'caption' => __( 'Record each vendor\'s payout when a Marketplace order is paid, after commission (requires Marketplace)', 'hivepress-vendor-analytics' ),
+						'label'   => __( 'Track earnings', 'vendor-analytics-pro-for-hivepress' ),
+						'caption' => __( 'Record each vendor\'s payout when a Marketplace order is paid, after commission (requires Marketplace)', 'vendor-analytics-pro-for-hivepress' ),
 						'type'    => 'checkbox',
 						'default' => true,
 						'_order'  => 40,
 					],
 
 					'vendor_analytics_sections' => [
-						'label'       => __( 'Visible sections', 'hivepress-vendor-analytics' ),
-						'description' => __( 'Choose which sections vendors see on their analytics pages and in downloaded reports. Fewer sections can be less overwhelming, and hiding averages may suit newer sites with low figures.', 'hivepress-vendor-analytics' ),
+						'label'       => __( 'Visible sections', 'vendor-analytics-pro-for-hivepress' ),
+						'description' => __( 'Choose which sections vendors see on their analytics pages and in downloaded reports.', 'vendor-analytics-pro-for-hivepress' ),
 						'type'        => 'checkboxes',
 						'default'     => [ 'summary', 'funnel', 'trend', 'response', 'earnings', 'benchmark', 'terms', 'breakdown', 'export' ],
 						'_order'      => 45,
 
 						'options'     => [
-							'summary'   => __( 'Summary cards', 'hivepress-vendor-analytics' ),
-							'funnel'    => __( 'Conversion funnel', 'hivepress-vendor-analytics' ),
-							'trend'     => __( 'Views & messages chart', 'hivepress-vendor-analytics' ),
-							'response'  => __( 'Response-time chart', 'hivepress-vendor-analytics' ),
-							'earnings'  => __( 'Earnings chart', 'hivepress-vendor-analytics' ),
-							'benchmark' => __( 'Category benchmark', 'hivepress-vendor-analytics' ),
-							'terms'     => __( 'Search terms', 'hivepress-vendor-analytics' ),
-							'breakdown' => __( 'Per-listing breakdown', 'hivepress-vendor-analytics' ),
-							'export'    => __( 'Report downloads', 'hivepress-vendor-analytics' ),
+							'summary'   => __( 'Summary cards', 'vendor-analytics-pro-for-hivepress' ),
+							'funnel'    => __( 'Conversion funnel', 'vendor-analytics-pro-for-hivepress' ),
+							'trend'     => __( 'Views & messages chart', 'vendor-analytics-pro-for-hivepress' ),
+							'response'  => __( 'Response-time chart', 'vendor-analytics-pro-for-hivepress' ),
+							'earnings'  => __( 'Earnings chart', 'vendor-analytics-pro-for-hivepress' ),
+							'benchmark' => __( 'Category benchmark', 'vendor-analytics-pro-for-hivepress' ),
+							'terms'     => __( 'Search terms', 'vendor-analytics-pro-for-hivepress' ),
+							'breakdown' => __( 'Per-listing breakdown', 'vendor-analytics-pro-for-hivepress' ),
+							'export'    => __( 'Report downloads', 'vendor-analytics-pro-for-hivepress' ),
 						],
 					],
 
@@ -1168,49 +1175,59 @@ function hpva_register_settings( $settings ) {
 			],
 
 			'monthly'   => [
-				'title'       => __( 'Monthly report email', 'hivepress-vendor-analytics' ),
-				'description' => __( 'On the first of each month, vendors can be sent a summary of the month just gone, with a button that opens their full report. Switching it on sends to every vendor; the second setting hands each vendor the choice for themselves. Edit the wording under HivePress > Emails.', 'hivepress-vendor-analytics' ),
+				'title'       => __( 'Monthly report email', 'vendor-analytics-pro-for-hivepress' ),
+				'description' => __( 'On the first of each month, vendors can be emailed a summary of the month just gone, with a button that opens their full report. Edit the wording under HivePress > Emails.', 'vendor-analytics-pro-for-hivepress' ),
 				'_order'      => 15,
 
 				'fields'      => [
 					'vendor_analytics_monthly'         => [
-						'label'       => __( 'Monthly reports', 'hivepress-vendor-analytics' ),
-						'caption'     => __( 'Email vendors a monthly summary of their analytics', 'hivepress-vendor-analytics' ),
-						'description' => __( 'While this is off nothing is sent and nothing is shown to vendors. Switching it on means every vendor is emailed on the first of the month, unless they have turned it off for themselves.', 'hivepress-vendor-analytics' ),
+						'label'       => __( 'Monthly reports', 'vendor-analytics-pro-for-hivepress' ),
+						'caption'     => __( 'Email vendors a monthly summary of their analytics', 'vendor-analytics-pro-for-hivepress' ),
+						'description' => __( 'While this is off nothing is sent and vendors see nothing about it. On, every vendor is emailed unless they have turned it off for themselves.', 'vendor-analytics-pro-for-hivepress' ),
 						'type'        => 'checkbox',
 						'default'     => false,
 						'_order'      => 10,
 					],
 
+					/*
+					 * The two settings below carry core's "_parent" argument, so their rows only
+					 * appear while the Monthly reports box is ticked. Core does all of it: the row
+					 * is rendered with data-parent (class-admin.php:501-504) and common.js hides
+					 * and shows it live, including the right state on load (common.js:1291-1318).
+					 * The value is the UNPREFIXED option name; core adds hp_ itself. Children must
+					 * sort after their parent checkbox or the reveal puts them above it.
+					 */
 					'vendor_analytics_monthly_vendors' => [
-						'label'       => __( 'Vendor choice', 'hivepress-vendor-analytics' ),
-						'caption'     => __( 'Let vendors decide whether to receive them', 'hivepress-vendor-analytics' ),
-						'description' => __( 'Adds the choice to each vendor\'s own settings page, so they can turn the email off. Switch this off to keep the decision yourself: vendors then see nothing about it and everyone is emailed. Any choices vendors have already made are remembered and come back if you switch this on again.', 'hivepress-vendor-analytics' ),
+						'label'       => __( 'Vendor choice', 'vendor-analytics-pro-for-hivepress' ),
+						'caption'     => __( 'Let vendors decide whether to receive them', 'vendor-analytics-pro-for-hivepress' ),
+						'description' => __( 'Adds the choice to each vendor\'s own settings page. Switch this off to email everyone; choices vendors have already made are remembered.', 'vendor-analytics-pro-for-hivepress' ),
 						'type'        => 'checkbox',
 						'default'     => true,
+						'_parent'     => 'vendor_analytics_monthly',
 						'_order'      => 20,
 					],
 
 					'vendor_analytics_monthly_quiet'   => [
-						'label'       => __( 'Quiet months', 'hivepress-vendor-analytics' ),
-						'caption'     => __( 'Include vendors with no activity to report', 'hivepress-vendor-analytics' ),
-						'description' => __( 'A month with no views, messages, bookings or earnings produces a page of zeros, so this is off by default. While vendors can decide for themselves, each one can override this on their own settings page.', 'hivepress-vendor-analytics' ),
+						'label'       => __( 'Quiet months', 'vendor-analytics-pro-for-hivepress' ),
+						'caption'     => __( 'Include vendors with no activity to report', 'vendor-analytics-pro-for-hivepress' ),
+						'description' => __( 'A month with no activity produces a page of zeros, so this is off by default. Vendors given the choice above can override it for themselves.', 'vendor-analytics-pro-for-hivepress' ),
 						'type'        => 'checkbox',
 						'default'     => false,
+						'_parent'     => 'vendor_analytics_monthly',
 						'_order'      => 30,
 					],
 				],
 			],
 
 			'data'      => [
-				'title'       => __( 'Data', 'hivepress-vendor-analytics' ),
-				'description' => __( 'Figures are stored as daily totals in two small database tables on your own site.', 'hivepress-vendor-analytics' ),
+				'title'       => __( 'Data', 'vendor-analytics-pro-for-hivepress' ),
+				'description' => __( 'Figures are stored as daily totals in two small database tables on your own site.', 'vendor-analytics-pro-for-hivepress' ),
 				'_order'      => 20,
 
 				'fields'      => [
 					'vendor_analytics_retention' => [
-						'label'       => __( 'Retention (days)', 'hivepress-vendor-analytics' ),
-						'description' => __( 'Daily aggregates older than this are deleted by a daily cron job. Set to 0 to keep data forever.', 'hivepress-vendor-analytics' ),
+						'label'       => __( 'Retention (days)', 'vendor-analytics-pro-for-hivepress' ),
+						'description' => __( 'Daily aggregates older than this are deleted by a daily cron job. Set to 0 to keep data forever.', 'vendor-analytics-pro-for-hivepress' ),
 						'type'        => 'number',
 						'min_value'   => 0,
 						'max_value'   => 3650,
@@ -1221,15 +1238,15 @@ function hpva_register_settings( $settings ) {
 			],
 
 			'uninstall' => [
-				'title'       => __( 'Removing the plugin', 'hivepress-vendor-analytics' ),
-				'description' => __( 'What happens if you ever delete this plugin. WordPress always shows a "will also delete its data" warning on the delete screen, but unless the box below is ticked your analytics and settings are kept, so you can reinstall later and carry on where you left off. Deactivating never removes anything.', 'hivepress-vendor-analytics' ),
+				'title'       => __( 'Removing the plugin', 'vendor-analytics-pro-for-hivepress' ),
+				'description' => __( 'Unless the box below is ticked, deleting this plugin keeps your analytics and settings, so you can reinstall later and carry on where you left off. Deactivating never removes anything.', 'vendor-analytics-pro-for-hivepress' ),
 				'_order'      => 30,
 
 				'fields'      => [
 					'vendor_analytics_delete_data' => [
-						'label'       => __( 'Delete all data', 'hivepress-vendor-analytics' ),
-						'caption'     => __( 'Permanently delete all analytics data when this plugin is deleted', 'hivepress-vendor-analytics' ),
-						'description' => __( 'Removes the two analytics tables, every setting on this tab and the internal order and booking markers. This cannot be undone.', 'hivepress-vendor-analytics' ),
+						'label'       => __( 'Delete all data', 'vendor-analytics-pro-for-hivepress' ),
+						'caption'     => __( 'Permanently delete all analytics data when this plugin is deleted', 'vendor-analytics-pro-for-hivepress' ),
+						'description' => __( 'Removes the two analytics tables, every setting on this tab and the internal order and booking markers. This cannot be undone.', 'vendor-analytics-pro-for-hivepress' ),
 						'type'        => 'checkbox',
 						'_order'      => 10,
 					],
@@ -1243,9 +1260,9 @@ function hpva_register_settings( $settings ) {
 	// than no switch.
 	if ( class_exists( '\HivePress\Templates\Vendor_Dashboard_Page' ) ) {
 		$settings['vendor_analytics']['sections']['tracking']['fields']['vendor_analytics_hide_dashboard'] = [
-			'label'       => __( 'Vendor dashboard', 'hivepress-vendor-analytics' ),
-			'caption'     => __( 'Hide the Marketplace vendor dashboard, its earnings summary, from the account menu', 'hivepress-vendor-analytics' ),
-			'description' => __( 'Marketplace stays active and the page still works if opened directly; only its account menu item is hidden.', 'hivepress-vendor-analytics' ),
+			'label'       => __( 'Vendor dashboard', 'vendor-analytics-pro-for-hivepress' ),
+			'caption'     => __( 'Hide the Marketplace vendor dashboard, its earnings summary, from the account menu', 'vendor-analytics-pro-for-hivepress' ),
+			'description' => __( 'Marketplace stays active and the page still works if opened directly; only its account menu item is hidden.', 'vendor-analytics-pro-for-hivepress' ),
 			'type'        => 'checkbox',
 			'_order'      => 55,
 		];
@@ -1255,15 +1272,121 @@ function hpva_register_settings( $settings ) {
 	// other site the control would do nothing and only confuse.
 	if ( class_exists( '\HivePress\Templates\Listing_Statistics_Page' ) ) {
 		$settings['vendor_analytics']['sections']['tracking']['fields']['vendor_analytics_hide_statistics'] = [
-			'label'       => __( 'Statistics tab', 'hivepress-vendor-analytics' ),
-			'caption'     => __( 'Hide the official Statistics tab and Stats button on listings (the Analytics tab replaces them)', 'hivepress-vendor-analytics' ),
-			'description' => __( 'The Statistics extension itself stays active; only its tab and its button on each listing are hidden.', 'hivepress-vendor-analytics' ),
+			'label'       => __( 'Statistics tab', 'vendor-analytics-pro-for-hivepress' ),
+			'caption'     => __( 'Hide the official Statistics tab and Stats button on listings (the Analytics tab replaces them)', 'vendor-analytics-pro-for-hivepress' ),
+			'description' => __( 'The Statistics extension itself stays active; only its tab and its button on each listing are hidden.', 'vendor-analytics-pro-for-hivepress' ),
 			'type'        => 'checkbox',
 			'_order'      => 50,
 		];
 	}
 
 	return $settings;
+}
+
+/**
+ * Whether the settings tab currently being rendered carries this plugin's own fields.
+ *
+ * Answered from the fields HivePress has actually registered for this request, never from
+ * $_GET['tab']. The address cannot be trusted: get_settings_tab() falls back to the FIRST tab
+ * whenever "tab" is absent (reference/hivepress/includes/components/class-admin.php:607-622),
+ * and the bare admin.php?page=hp_settings link in the HivePress menu is exactly that case, so
+ * reading the address would miss this plugin's own tab on any site where it sorts first.
+ *
+ * register_settings() builds the sections and fields for one tab only and calls
+ * add_settings_field() with the prefixed option name (class-admin.php:287-325), so
+ * $wp_settings_fields['hp_settings'] holds hp_vendor_analytics_* keys on this plugin's tab and
+ * on no other, whatever the address says. It is the server-side twin of the
+ * [name^="hp_vendor_analytics_"] gate the script uses.
+ *
+ * Timing is the only thing to get right. HivePress registers on admin_init priority 10, and
+ * this runs from admin_enqueue_scripts, which wp-admin fires later, from admin-header.php.
+ * Called any earlier it would return false and this tab would silently lose its assets, so
+ * re-test the tab if the hook is ever moved.
+ *
+ * @return bool
+ */
+function hpva_is_settings_tab() {
+	if ( ! isset( $GLOBALS['wp_settings_fields']['hp_settings'] ) || ! is_array( $GLOBALS['wp_settings_fields']['hp_settings'] ) ) {
+		return false;
+	}
+
+	foreach ( $GLOBALS['wp_settings_fields']['hp_settings'] as $hpva_section ) {
+		foreach ( array_keys( (array) $hpva_section ) as $hpva_field ) {
+			if ( 0 === strpos( (string) $hpva_field, 'hp_vendor_analytics_' ) ) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Enqueues the shared settings-screen chrome and this plugin's own settings styles.
+ *
+ * Loaded only on the tab that carries this plugin's own fields.
+ *
+ * Until 1.9.1 this enqueued on every HivePress settings tab, with a comment saying the tab was
+ * "not knowable here". Half of that was right and half was wrong. Reading $_GET['tab'] really
+ * would miss the bare admin.php?page=hp_settings case, because core falls back to the FIRST
+ * tab when "tab" is absent - but the tab IS knowable, from the fields HivePress registered for
+ * this request. See hpva_is_settings_tab() above, and resources/hivepress-settings.md, "The
+ * tab IS knowable server-side: ask the registered fields" (2026-08-30). It matters because a
+ * stylesheet cannot no-op the way a script can, and twelve siblings are gaining
+ * settings-screen chrome of their own, so "everyone enqueues everywhere" ends with a dozen
+ * plugins' admin assets on every tab.
+ *
+ * The script keeps its own hp_vendor_analytics_ gate: this decides whether the file loads,
+ * that decides whether it acts, and neither is a substitute for the other.
+ *
+ * The show/hide of the monthly report children is deliberately NOT done here.
+ * HivePress core does that itself from the "_parent" field argument - see the
+ * comment on those fields above.
+ *
+ * @return void
+ */
+function hpva_enqueue_admin() {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only screen check.
+	if ( ! isset( $_GET['page'] ) || 'hp_settings' !== sanitize_key( wp_unslash( $_GET['page'] ) ) ) {
+		return;
+	}
+
+	if ( ! hpva_is_settings_tab() ) {
+		return;
+	}
+
+	// The file time rides along in the version so caches refresh whenever the file changes.
+	wp_enqueue_style(
+		'hpva-admin',
+		plugins_url( 'assets/css/admin.css', HPVA_FILE ),
+		[],
+		HPVA_VERSION . '.' . (int) filemtime( __DIR__ . '/assets/css/admin.css' )
+	);
+
+	wp_enqueue_script(
+		'hpva-admin',
+		plugins_url( 'assets/js/admin.js', HPVA_FILE ),
+		[ 'jquery' ],
+		HPVA_VERSION . '.' . (int) filemtime( __DIR__ . '/assets/js/admin.js' ),
+		true
+	);
+
+	wp_add_inline_script(
+		'hpva-admin',
+		'window.hpvaAdmin=' . wp_json_encode(
+			[
+				'labels' => [
+					// The colon is part of the wording: it reads as a lead-in to
+					// the links that follow it, not as a heading over them. The
+					// same string in every sibling plugin, deliberately.
+					'jumpTo'    => esc_html__( 'Jump to a section:', 'vendor-analytics-pro-for-hivepress' ),
+					'save'      => esc_html__( 'Save Changes', 'vendor-analytics-pro-for-hivepress' ),
+					'backToTop' => esc_html__( 'Back to top', 'vendor-analytics-pro-for-hivepress' ),
+				],
+			]
+		) . ';',
+		'before'
+	);
 }
 
 /**
@@ -1293,7 +1416,7 @@ function hpva_get_option( $name, $fallback ) {
 function hpva_plugin_action_links( $links ) {
 	array_unshift(
 		$links,
-		'<a href="' . esc_url( admin_url( 'admin.php?page=hp_settings&tab=vendor_analytics' ) ) . '">' . esc_html__( 'Settings', 'hivepress-vendor-analytics' ) . '</a>'
+		'<a href="' . esc_url( admin_url( 'admin.php?page=hp_settings&tab=vendor_analytics' ) ) . '">' . esc_html__( 'Settings', 'vendor-analytics-pro-for-hivepress' ) . '</a>'
 	);
 
 	return $links;
@@ -1770,7 +1893,7 @@ function hpva_order_net( $order ) {
  * @param int $refund_id Refund ID.
  * @return void
  */
-function hpva_on_order_refunded( $order_id, $refund_id ) {
+function hpva_on_order_refunded( $order_id, $refund_id ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- hook signature; the amount comes from the order's payout figure, not the refund object.
 	if ( ! function_exists( 'wc_get_order' ) || ! hpva_get_option( 'vendor_analytics_earnings', true ) ) {
 		return;
 	}
@@ -2135,11 +2258,6 @@ function hpva_enqueue_tracker() {
 }
 
 /**
- * Registers the REST routes.
- *
- * @return void
- */
-/**
  * Decides who may reach the export route.
  *
  * Two ways in, and only two. Normally it is cookie auth: WordPress
@@ -2165,6 +2283,11 @@ function hpva_export_permission( $request ) {
 	return is_user_logged_in();
 }
 
+/**
+ * Registers the REST routes.
+ *
+ * @return void
+ */
 function hpva_register_rest() {
 	register_rest_route(
 		'hpva/v1',
@@ -2556,7 +2679,7 @@ function hpva_delta( $current, $previous ) {
 		// the renderer must be able to tell "new" from "worse".
 		return [
 			'dir'  => 'new',
-			'text' => __( 'New', 'hivepress-vendor-analytics' ),
+			'text' => __( 'New', 'vendor-analytics-pro-for-hivepress' ),
 		];
 	}
 
@@ -2890,7 +3013,7 @@ Account menu + Statistics page injection.
 function hpva_account_menu_item( $items ) {
 	if ( is_user_logged_in() && hpva_vendor_id_from_user( get_current_user_id() ) ) {
 		$items['vendor_analytics'] = [
-			'label'  => esc_html__( 'Analytics', 'hivepress-vendor-analytics' ),
+			'label'  => esc_html__( 'Analytics', 'vendor-analytics-pro-for-hivepress' ),
 			'url'    => hivepress()->router->get_url( 'vendor_analytics_page' ),
 			// Route name keeps the item highlighted under ?hpva_period URLs.
 			'route'  => 'vendor_analytics_page',
@@ -2921,7 +3044,7 @@ function hpva_listing_manage_menu_item( $items, $menu ) {
 	// all of them and would silently hide this tab on every site.
 	if ( isset( $items['listing_edit'] ) && $listing instanceof \HivePress\Models\Listing && 'publish' === $listing->get_status() ) {
 		$items['listing_analytics'] = [
-			'label'  => esc_html__( 'Analytics', 'hivepress-vendor-analytics' ),
+			'label'  => esc_html__( 'Analytics', 'vendor-analytics-pro-for-hivepress' ),
 			'url'    => hivepress()->router->get_url( 'listing_analytics_page', [ 'listing_id' => $listing->get_id() ] ),
 			// The route name keeps the tab highlighted when the period
 			// switcher adds ?hpva_period to the URL - current-item matching
@@ -3133,16 +3256,16 @@ function hpva_duration( $seconds ) {
 
 	if ( $seconds < 90 * 60 ) {
 		// translators: %s: number of minutes.
-		return sprintf( __( '%s min', 'hivepress-vendor-analytics' ), number_format_i18n( max( 1, round( $seconds / 60 ) ) ) );
+		return sprintf( __( '%s min', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( max( 1, round( $seconds / 60 ) ) ) );
 	}
 
 	if ( $seconds < DAY_IN_SECONDS ) {
 		// translators: %s: number of hours.
-		return sprintf( __( '%s h', 'hivepress-vendor-analytics' ), number_format_i18n( round( $seconds / HOUR_IN_SECONDS, 1 ), 1 ) );
+		return sprintf( __( '%s h', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( round( $seconds / HOUR_IN_SECONDS, 1 ), 1 ) );
 	}
 
 	// translators: %s: number of days.
-	return sprintf( __( '%s days', 'hivepress-vendor-analytics' ), number_format_i18n( round( $seconds / DAY_IN_SECONDS, 1 ), 1 ) );
+	return sprintf( __( '%s days', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( round( $seconds / DAY_IN_SECONDS, 1 ), 1 ) );
 }
 
 /**
@@ -3370,7 +3493,7 @@ function hpva_render_funnel( $steps ) {
 			$html .= ' <small>' . esc_html(
 				sprintf(
 					/* translators: 1: percentage, 2: name of the previous funnel step, for example "views". */
-					__( '%1$s%% of %2$s', 'hivepress-vendor-analytics' ),
+					__( '%1$s%% of %2$s', 'vendor-analytics-pro-for-hivepress' ),
 					number_format_i18n( $step['rate'], 1 ),
 					hpva_lowercase_label( $step['of'] )
 				)
@@ -3409,11 +3532,11 @@ function hpva_current_period() {
  */
 function hpva_period_switcher( $current ) {
 	$options = [
-		7   => __( '7 days', 'hivepress-vendor-analytics' ),
-		30  => __( '30 days', 'hivepress-vendor-analytics' ),
-		90  => __( '90 days', 'hivepress-vendor-analytics' ),
-		365 => __( '1 year', 'hivepress-vendor-analytics' ),
-		0   => __( 'All time', 'hivepress-vendor-analytics' ),
+		7   => __( '7 days', 'vendor-analytics-pro-for-hivepress' ),
+		30  => __( '30 days', 'vendor-analytics-pro-for-hivepress' ),
+		90  => __( '90 days', 'vendor-analytics-pro-for-hivepress' ),
+		365 => __( '1 year', 'vendor-analytics-pro-for-hivepress' ),
+		0   => __( 'All time', 'vendor-analytics-pro-for-hivepress' ),
 	];
 
 	$html = '<div class="hpva-periods">';
@@ -3516,7 +3639,7 @@ function hpva_render_dashboard() {
 		// Diagnostics still ship on this path: an admin investigating "why
 		// is analytics empty" is usually not a vendor themselves, and this
 		// early return is exactly the page they will be looking at.
-		return '<p>' . esc_html__( 'Analytics are available once your vendor profile is set up.', 'hivepress-vendor-analytics' ) . '</p>' . hpva_admin_diagnostics();
+		return '<p>' . esc_html__( 'Analytics are available once your vendor profile is set up.', 'vendor-analytics-pro-for-hivepress' ) . '</p>' . hpva_admin_diagnostics();
 	}
 
 	$period            = hpva_current_period();
@@ -3582,13 +3705,13 @@ function hpva_render_dashboard() {
 	// the viewer server-side).
 	$out .= '<script>try{localStorage.setItem("hpvaOwner","' . (int) $vendor_id . '");}catch(e){}</script>';
 
-	$out .= '<p class="hpva-sub">' . esc_html__( 'All your listings combined. Open a listing\'s own Analytics tab for listing-specific figures.', 'hivepress-vendor-analytics' ) . '</p>';
+	$out .= '<p class="hpva-sub">' . esc_html__( 'All your listings combined. Open a listing\'s own Analytics tab for listing-specific figures.', 'vendor-analytics-pro-for-hivepress' ) . '</p>';
 	$out .= hpva_period_switcher( $period );
 
 	if ( 0 !== $period ) {
 		$out .= '<p class="hpva-sub hpva-sub--delta">' . sprintf(
 			// translators: %s: number of days.
-			esc_html__( 'Changes compare against the previous %s days.', 'hivepress-vendor-analytics' ),
+			esc_html__( 'Changes compare against the previous %s days.', 'vendor-analytics-pro-for-hivepress' ),
 			number_format_i18n( $period )
 		) . '</p>';
 	}
@@ -3598,26 +3721,26 @@ function hpva_render_dashboard() {
 	// Summary cards.
 	if ( hpva_section_on( 'summary' ) ) :
 		$out .= '<div class="hpva-cards">';
-		$out .= hpva_card( __( 'Listing views', 'hivepress-vendor-analytics' ), number_format_i18n( $views ), '', $d( 'view' ) );
-		$out .= hpva_card( __( 'Profile views', 'hivepress-vendor-analytics' ), number_format_i18n( $vviews ), '', $d( 'vendor_view' ) );
-		$out .= hpva_card( __( 'Messages received', 'hivepress-vendor-analytics' ), number_format_i18n( $messages ), '', $d( 'message' ) );
+		$out .= hpva_card( __( 'Listing views', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $views ), '', $d( 'view' ) );
+		$out .= hpva_card( __( 'Profile views', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $vviews ), '', $d( 'vendor_view' ) );
+		$out .= hpva_card( __( 'Messages received', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $messages ), '', $d( 'message' ) );
 
 		if ( class_exists( '\HivePress\Models\Booking' ) ) {
-			$out .= hpva_card( __( 'Bookings confirmed', 'hivepress-vendor-analytics' ), number_format_i18n( $b_conf ), '', $d( 'booking_confirmed' ) );
+			$out .= hpva_card( __( 'Bookings confirmed', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $b_conf ), '', $d( 'booking_confirmed' ) );
 		}
 
 		if ( class_exists( '\HivePress\Models\Favorite' ) ) {
-			$out .= hpva_card( __( 'Favourites gained', 'hivepress-vendor-analytics' ), number_format_i18n( $m( 'favorite' ) ), '', $d( 'favorite' ) );
+			$out .= hpva_card( __( 'Favourites gained', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $m( 'favorite' ) ), '', $d( 'favorite' ) );
 		}
 
-		$out .= hpva_card( __( 'Phone clicks', 'hivepress-vendor-analytics' ), number_format_i18n( $phone ), '', $d( 'phone_click' ) );
-		$out .= hpva_card( __( 'Email clicks', 'hivepress-vendor-analytics' ), number_format_i18n( $email ), '', $d( 'email_click' ) );
+		$out .= hpva_card( __( 'Phone clicks', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $phone ), '', $d( 'phone_click' ) );
+		$out .= hpva_card( __( 'Email clicks', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $email ), '', $d( 'email_click' ) );
 
 		if ( class_exists( '\HivePress\Models\Offer' ) ) {
-			$out .= hpva_card( __( 'Offers sent', 'hivepress-vendor-analytics' ), number_format_i18n( $m( 'offer_sent' ) ), '', $d( 'offer_sent' ) );
+			$out .= hpva_card( __( 'Offers sent', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $m( 'offer_sent' ) ), '', $d( 'offer_sent' ) );
 
 			if ( $m( 'offer_accepted' ) || ( isset( $prev['offer_accepted'] ) && $prev['offer_accepted'] ) ) {
-				$out .= hpva_card( __( 'Offers accepted', 'hivepress-vendor-analytics' ), number_format_i18n( $m( 'offer_accepted' ) ), '', $d( 'offer_accepted' ) );
+				$out .= hpva_card( __( 'Offers accepted', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $m( 'offer_accepted' ) ), '', $d( 'offer_accepted' ) );
 			}
 		}
 
@@ -3630,10 +3753,10 @@ function hpva_render_dashboard() {
 		// mark. The wording avoids naming a screen, because the Dashboard can
 		// be switched off from our own settings tab.
 		if ( $orders || $earnings ) {
-			$out .= hpva_card( __( 'Orders completed', 'hivepress-vendor-analytics' ), number_format_i18n( $orders ), '', $d( 'order' ) );
-			$out .= hpva_card( __( 'Earnings', 'hivepress-vendor-analytics' ), hpva_money( $earnings ), __( 'What you keep after commission, counted when each order is paid. Totals elsewhere on the site may show the full order value, which is higher.', 'hivepress-vendor-analytics' ), $d( 'earning_minor' ), false, true );
-			$out .= hpva_card( __( 'Refunded', 'hivepress-vendor-analytics' ), hpva_money( $refunds ), '', $d( 'refund_minor' ), true );
-			$out .= hpva_card( __( 'Net earnings', 'hivepress-vendor-analytics' ), hpva_money( max( 0, $earnings - $refunds ) ) );
+			$out .= hpva_card( __( 'Orders completed', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $orders ), '', $d( 'order' ) );
+			$out .= hpva_card( __( 'Earnings', 'vendor-analytics-pro-for-hivepress' ), hpva_money( $earnings ), __( 'What you keep after commission, counted when each order is paid. Totals elsewhere on the site may show the full order value, which is higher.', 'vendor-analytics-pro-for-hivepress' ), $d( 'earning_minor' ), false, true );
+			$out .= hpva_card( __( 'Refunded', 'vendor-analytics-pro-for-hivepress' ), hpva_money( $refunds ), '', $d( 'refund_minor' ), true );
+			$out .= hpva_card( __( 'Net earnings', 'vendor-analytics-pro-for-hivepress' ), hpva_money( max( 0, $earnings - $refunds ) ) );
 		}
 
 		// The one figure that genuinely is not self-explanatory: "49 min"
@@ -3643,7 +3766,7 @@ function hpva_render_dashboard() {
 		if ( $resp_n > 0 ) {
 			$prev_avg  = ( isset( $prev['response_count'] ) && $prev['response_count'] > 0 ) ? $prev['response_sum'] / $prev['response_count'] : 0;
 			$avg_delta = ( 0 !== $period ) ? hpva_delta( $resp_sum / $resp_n, $prev_avg ) : null;
-			$out      .= hpva_card( __( 'Avg first response', 'hivepress-vendor-analytics' ), hpva_duration( $resp_sum / $resp_n ), __( 'From a customer\'s first message to your first reply', 'hivepress-vendor-analytics' ), $avg_delta, true, true );
+			$out      .= hpva_card( __( 'Avg first response', 'vendor-analytics-pro-for-hivepress' ), hpva_duration( $resp_sum / $resp_n ), __( 'From a customer\'s first message to your first reply', 'vendor-analytics-pro-for-hivepress' ), $avg_delta, true, true );
 		}
 
 		$out .= '</div>';
@@ -3652,40 +3775,40 @@ function hpva_render_dashboard() {
 	// Funnel.
 	$funnel_steps = [
 		[
-			'label' => __( 'Views', 'hivepress-vendor-analytics' ),
+			'label' => __( 'Views', 'vendor-analytics-pro-for-hivepress' ),
 			'value' => $views,
 		],
 		[
-			'label' => __( 'Messages', 'hivepress-vendor-analytics' ),
+			'label' => __( 'Messages', 'vendor-analytics-pro-for-hivepress' ),
 			'value' => $messages,
 		],
 	];
 
 	if ( class_exists( '\HivePress\Models\Booking' ) ) {
 		$funnel_steps[] = [
-			'label' => __( 'Bookings', 'hivepress-vendor-analytics' ),
+			'label' => __( 'Bookings', 'vendor-analytics-pro-for-hivepress' ),
 			'value' => $b_conf,
 		];
 	}
 
 	if ( hpva_section_on( 'funnel' ) ) {
-		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Conversion funnel', 'hivepress-vendor-analytics' ) . '</h3>'
-			. '<p class="hpva-sub">' . esc_html__( 'How many of the people who saw your listings went on to contact you, and how many of those went on to book.', 'hivepress-vendor-analytics' ) . '</p>';
+		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Conversion funnel', 'vendor-analytics-pro-for-hivepress' ) . '</h3>'
+			. '<p class="hpva-sub">' . esc_html__( 'How many of the people who saw your listings went on to contact you, and how many of those went on to book.', 'vendor-analytics-pro-for-hivepress' ) . '</p>';
 		$out .= hpva_render_funnel( $funnel_steps );
 	}
 
 	// Views + messages trend.
 	if ( hpva_section_on( 'trend' ) ) :
-		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Views & messages', 'hivepress-vendor-analytics' ) . '</h3>';
+		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Views & messages', 'vendor-analytics-pro-for-hivepress' ) . '</h3>';
 		$out .= hpva_svg_line(
 			[
 				[
-					'label'  => __( 'Views', 'hivepress-vendor-analytics' ),
+					'label'  => __( 'Views', 'vendor-analytics-pro-for-hivepress' ),
 					'color'  => '#6b7cf6',
 					'series' => hpva_series( $vendor_id, 'view', $chart_from, $to ),
 				],
 				[
-					'label'  => __( 'Messages', 'hivepress-vendor-analytics' ),
+					'label'  => __( 'Messages', 'vendor-analytics-pro-for-hivepress' ),
 					'color'  => '#f6a56b',
 					'series' => hpva_series( $vendor_id, 'message', $chart_from, $to ),
 				],
@@ -3705,11 +3828,11 @@ function hpva_render_dashboard() {
 			$avg_series[ $day ] = $n > 0 ? (int) round( $sum / $n / 60 ) : 0; // minutes
 		}
 
-		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'First response time (minutes, daily average)', 'hivepress-vendor-analytics' ) . '</h3>';
+		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'First response time (minutes, daily average)', 'vendor-analytics-pro-for-hivepress' ) . '</h3>';
 		$out .= hpva_svg_line(
 			[
 				[
-					'label'  => __( 'Minutes', 'hivepress-vendor-analytics' ),
+					'label'  => __( 'Minutes', 'vendor-analytics-pro-for-hivepress' ),
 					'color'  => '#4fb286',
 					'series' => $avg_series,
 				],
@@ -3726,11 +3849,11 @@ function hpva_render_dashboard() {
 			$e_series[ $day ] = (int) round( $minor / $factor );
 		}
 
-		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Earnings', 'hivepress-vendor-analytics' ) . '</h3>';
+		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Earnings', 'vendor-analytics-pro-for-hivepress' ) . '</h3>';
 		$out .= hpva_svg_line(
 			[
 				[
-					'label'  => __( 'Earnings', 'hivepress-vendor-analytics' ),
+					'label'  => __( 'Earnings', 'vendor-analytics-pro-for-hivepress' ),
 					'color'  => '#4fb286',
 					'series' => $e_series,
 				],
@@ -3746,12 +3869,12 @@ function hpva_render_dashboard() {
 		$benchmark = hpva_benchmark( $vendor_id, $from, $to );
 
 		if ( $benchmark ) {
-			$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Category benchmark', 'hivepress-vendor-analytics' ) . '</h3>';
+			$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Category benchmark', 'vendor-analytics-pro-for-hivepress' ) . '</h3>';
 			$out .= '<div class="hpva-cards">';
-			$out .= hpva_card( __( 'Your avg daily views / listing', 'hivepress-vendor-analytics' ), number_format_i18n( $benchmark['vendor_avg'], 2 ) );
+			$out .= hpva_card( __( 'Your avg daily views / listing', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $benchmark['vendor_avg'], 2 ) );
 			$out .= hpva_card(
 				// translators: %s: category name.
-				sprintf( __( '%s average', 'hivepress-vendor-analytics' ), $benchmark['category_name'] ),
+				sprintf( __( '%s average', 'vendor-analytics-pro-for-hivepress' ), $benchmark['category_name'] ),
 				number_format_i18n( $benchmark['category_avg'], 2 )
 			);
 			$out .= '</div>';
@@ -3762,9 +3885,9 @@ function hpva_render_dashboard() {
 	$terms = hpva_section_on( 'terms' ) ? hpva_top_terms( $vendor_id, $from, $to ) : [];
 
 	if ( $terms ) {
-		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Search terms that surfaced your listings', 'hivepress-vendor-analytics' ) . '</h3>'
-			. '<p class="hpva-sub">' . esc_html__( 'What people typed, how often your listings appeared in those results, and how often they were opened from them.', 'hivepress-vendor-analytics' ) . '</p>';
-		$out .= '<div class="hpva-table-wrap"><table class="hpva-table"><thead><tr><th>' . esc_html__( 'Term', 'hivepress-vendor-analytics' ) . '</th><th>' . esc_html__( 'Impressions', 'hivepress-vendor-analytics' ) . '</th><th>' . esc_html__( 'Clicks', 'hivepress-vendor-analytics' ) . '</th></tr></thead><tbody>';
+		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Search terms that surfaced your listings', 'vendor-analytics-pro-for-hivepress' ) . '</h3>'
+			. '<p class="hpva-sub">' . esc_html__( 'What people typed, how often your listings appeared in those results, and how often they were opened from them.', 'vendor-analytics-pro-for-hivepress' ) . '</p>';
+		$out .= '<div class="hpva-table-wrap"><table class="hpva-table"><thead><tr><th>' . esc_html__( 'Term', 'vendor-analytics-pro-for-hivepress' ) . '</th><th>' . esc_html__( 'Impressions', 'vendor-analytics-pro-for-hivepress' ) . '</th><th>' . esc_html__( 'Clicks', 'vendor-analytics-pro-for-hivepress' ) . '</th></tr></thead><tbody>';
 
 		foreach ( $terms as $row ) {
 			$out .= '<tr><td>' . esc_html( $row->term ) . '</td><td>' . esc_html( number_format_i18n( (int) $row->impressions ) ) . '</td><td>' . esc_html( number_format_i18n( (int) $row->clicks ) ) . '</td></tr>';
@@ -3777,13 +3900,13 @@ function hpva_render_dashboard() {
 	$breakdown = hpva_section_on( 'breakdown' ) ? hpva_listing_breakdown( $vendor_id, $from, $to ) : [];
 
 	if ( $breakdown ) {
-		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Per-listing breakdown', 'hivepress-vendor-analytics' ) . '</h3>';
-		$out .= '<p class="hpva-sub">' . esc_html__( 'Ranked by views for the selected period, best performer first.', 'hivepress-vendor-analytics' ) . '</p>';
+		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Per-listing breakdown', 'vendor-analytics-pro-for-hivepress' ) . '</h3>';
+		$out .= '<p class="hpva-sub">' . esc_html__( 'Ranked by views for the selected period, best performer first.', 'vendor-analytics-pro-for-hivepress' ) . '</p>';
 		$out .= '<div class="hpva-table-wrap">' . hpva_breakdown_table( $breakdown, 'analytics' ) . '</div>';
 	}
 
 	if ( ! $views && ! $messages && ! $b_new ) {
-		$out .= '<p class="hpva-empty">' . esc_html__( 'No data recorded for this period yet.', 'hivepress-vendor-analytics' ) . '</p>';
+		$out .= '<p class="hpva-empty">' . esc_html__( 'No data recorded for this period yet.', 'vendor-analytics-pro-for-hivepress' ) . '</p>';
 	}
 
 	return $out . hpva_admin_diagnostics() . '</div>';
@@ -3815,8 +3938,8 @@ function hpva_export_buttons( $period, $listing_id = 0 ) {
 	// themes style, and hp-button is core's structural partner, so these
 	// inherit each theme's native look with no styling of our own.
 	return '<p class="hpva-export">'
-		. '<a class="hp-button button button--primary hpva-export__btn" href="' . esc_url( $report_url ) . '" target="_blank" rel="noopener">' . esc_html__( 'Download report', 'hivepress-vendor-analytics' ) . '</a>'
-		. '<a class="hp-button button button--secondary hpva-export__btn" href="' . esc_url( $metrics_url ) . '">' . esc_html__( 'Export CSV', 'hivepress-vendor-analytics' ) . '</a>'
+		. '<a class="hp-button button button--primary hpva-export__btn" href="' . esc_url( $report_url ) . '" target="_blank" rel="noopener">' . esc_html__( 'Download report', 'vendor-analytics-pro-for-hivepress' ) . '</a>'
+		. '<a class="hp-button button button--secondary hpva-export__btn" href="' . esc_url( $metrics_url ) . '">' . esc_html__( 'Export CSV', 'vendor-analytics-pro-for-hivepress' ) . '</a>'
 		. '</p>';
 }
 
@@ -3973,6 +4096,7 @@ function hpva_admin_diagnostics() {
 	// Same raw read as the Messages extension itself (no default): absent
 	// means storage off and messages go by email only.
 	$lines[] = 'message + response metrics need the Messages extension AND its "Store messages" setting: ' . ( class_exists( '\HivePress\Models\Message' ) ? ( get_option( 'hp_message_enable_storage' ) ? 'storage on' : 'storage OFF - messages are email-only and can never be counted' ) : 'Messages extension inactive' );
+
 	/*
 	 * How often the rate limiter refused an event, so a throttled undercount cannot be mistaken
 	 * for low traffic. On a site behind a proxy that does not restore the visitor's address, every
@@ -4072,7 +4196,7 @@ function hpva_render_listing_dashboard( $listing ) {
 
 	$out .= '<p class="hpva-sub">' . sprintf(
 		// translators: %s: listing title.
-		esc_html__( 'Figures for "%s" only. See Account > Analytics for all listings combined.', 'hivepress-vendor-analytics' ),
+		esc_html__( 'Figures for "%s" only. See Account > Analytics for all listings combined.', 'vendor-analytics-pro-for-hivepress' ),
 		esc_html( get_the_title( $listing_id ) )
 	) . '</p>';
 	$out .= hpva_period_switcher( $period );
@@ -4080,7 +4204,7 @@ function hpva_render_listing_dashboard( $listing ) {
 	if ( 0 !== $period ) {
 		$out .= '<p class="hpva-sub hpva-sub--delta">' . sprintf(
 			// translators: %s: number of days.
-			esc_html__( 'Changes compare against the previous %s days.', 'hivepress-vendor-analytics' ),
+			esc_html__( 'Changes compare against the previous %s days.', 'vendor-analytics-pro-for-hivepress' ),
 			number_format_i18n( $period )
 		) . '</p>';
 	}
@@ -4089,57 +4213,57 @@ function hpva_render_listing_dashboard( $listing ) {
 
 	if ( hpva_section_on( 'summary' ) ) {
 		$out .= '<div class="hpva-cards">';
-		$out .= hpva_card( __( 'Views', 'hivepress-vendor-analytics' ), number_format_i18n( $views ), '', $d( 'view' ) );
-		$out .= hpva_card( __( 'Messages', 'hivepress-vendor-analytics' ), number_format_i18n( $messages ), '', $d( 'message' ) );
+		$out .= hpva_card( __( 'Views', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $views ), '', $d( 'view' ) );
+		$out .= hpva_card( __( 'Messages', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $messages ), '', $d( 'message' ) );
 
 		if ( class_exists( '\HivePress\Models\Booking' ) ) {
-			$out .= hpva_card( __( 'Bookings confirmed', 'hivepress-vendor-analytics' ), number_format_i18n( $b_conf ), '', $d( 'booking_confirmed' ) );
+			$out .= hpva_card( __( 'Bookings confirmed', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $b_conf ), '', $d( 'booking_confirmed' ) );
 		}
 
 		if ( class_exists( '\HivePress\Models\Favorite' ) ) {
-			$out .= hpva_card( __( 'Favourites gained', 'hivepress-vendor-analytics' ), number_format_i18n( $m( 'favorite' ) ), '', $d( 'favorite' ) );
+			$out .= hpva_card( __( 'Favourites gained', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $m( 'favorite' ) ), '', $d( 'favorite' ) );
 		}
 
-		$out .= hpva_card( __( 'Phone clicks', 'hivepress-vendor-analytics' ), number_format_i18n( $phone ), '', $d( 'phone_click' ) );
-		$out .= hpva_card( __( 'Email clicks', 'hivepress-vendor-analytics' ), number_format_i18n( $email ), '', $d( 'email_click' ) );
+		$out .= hpva_card( __( 'Phone clicks', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $phone ), '', $d( 'phone_click' ) );
+		$out .= hpva_card( __( 'Email clicks', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $email ), '', $d( 'email_click' ) );
 		$out .= '</div>';
 	}
 
 	if ( hpva_section_on( 'funnel' ) ) {
 		$funnel_steps = [
 			[
-				'label' => __( 'Views', 'hivepress-vendor-analytics' ),
+				'label' => __( 'Views', 'vendor-analytics-pro-for-hivepress' ),
 				'value' => $views,
 			],
 			[
-				'label' => __( 'Messages', 'hivepress-vendor-analytics' ),
+				'label' => __( 'Messages', 'vendor-analytics-pro-for-hivepress' ),
 				'value' => $messages,
 			],
 		];
 
 		if ( class_exists( '\HivePress\Models\Booking' ) ) {
 			$funnel_steps[] = [
-				'label' => __( 'Bookings', 'hivepress-vendor-analytics' ),
+				'label' => __( 'Bookings', 'vendor-analytics-pro-for-hivepress' ),
 				'value' => $b_conf,
 			];
 		}
 
-		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Conversion funnel', 'hivepress-vendor-analytics' ) . '</h3>'
-			. '<p class="hpva-sub">' . esc_html__( 'How many of the people who saw your listings went on to contact you, and how many of those went on to book.', 'hivepress-vendor-analytics' ) . '</p>';
+		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Conversion funnel', 'vendor-analytics-pro-for-hivepress' ) . '</h3>'
+			. '<p class="hpva-sub">' . esc_html__( 'How many of the people who saw your listings went on to contact you, and how many of those went on to book.', 'vendor-analytics-pro-for-hivepress' ) . '</p>';
 		$out .= hpva_render_funnel( $funnel_steps );
 	}
 
 	if ( hpva_section_on( 'trend' ) ) {
-		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Views & messages', 'hivepress-vendor-analytics' ) . '</h3>';
+		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Views & messages', 'vendor-analytics-pro-for-hivepress' ) . '</h3>';
 		$out .= hpva_svg_line(
 			[
 				[
-					'label'  => __( 'Views', 'hivepress-vendor-analytics' ),
+					'label'  => __( 'Views', 'vendor-analytics-pro-for-hivepress' ),
 					'color'  => '#6b7cf6',
 					'series' => hpva_series( $vendor_id, 'view', $chart_from, $to, $listing_id ),
 				],
 				[
-					'label'  => __( 'Messages', 'hivepress-vendor-analytics' ),
+					'label'  => __( 'Messages', 'vendor-analytics-pro-for-hivepress' ),
 					'color'  => '#f6a56b',
 					'series' => hpva_series( $vendor_id, 'message', $chart_from, $to, $listing_id ),
 				],
@@ -4151,9 +4275,9 @@ function hpva_render_listing_dashboard( $listing ) {
 		$terms = hpva_top_terms( $vendor_id, $from, $to, 10, $listing_id );
 
 		if ( $terms ) {
-			$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Search terms that surfaced this listing', 'hivepress-vendor-analytics' ) . '</h3>'
-				. '<p class="hpva-sub">' . esc_html__( 'What people typed, how often this listing appeared in those results, and how often it was opened from them.', 'hivepress-vendor-analytics' ) . '</p>';
-			$out .= '<div class="hpva-table-wrap"><table class="hpva-table"><thead><tr><th>' . esc_html__( 'Term', 'hivepress-vendor-analytics' ) . '</th><th>' . esc_html__( 'Impressions', 'hivepress-vendor-analytics' ) . '</th><th>' . esc_html__( 'Clicks', 'hivepress-vendor-analytics' ) . '</th></tr></thead><tbody>';
+			$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Search terms that surfaced this listing', 'vendor-analytics-pro-for-hivepress' ) . '</h3>'
+				. '<p class="hpva-sub">' . esc_html__( 'What people typed, how often this listing appeared in those results, and how often it was opened from them.', 'vendor-analytics-pro-for-hivepress' ) . '</p>';
+			$out .= '<div class="hpva-table-wrap"><table class="hpva-table"><thead><tr><th>' . esc_html__( 'Term', 'vendor-analytics-pro-for-hivepress' ) . '</th><th>' . esc_html__( 'Impressions', 'vendor-analytics-pro-for-hivepress' ) . '</th><th>' . esc_html__( 'Clicks', 'vendor-analytics-pro-for-hivepress' ) . '</th></tr></thead><tbody>';
 
 			foreach ( $terms as $row ) {
 				$out .= '<tr><td>' . esc_html( $row->term ) . '</td><td>' . esc_html( number_format_i18n( (int) $row->impressions ) ) . '</td><td>' . esc_html( number_format_i18n( (int) $row->clicks ) ) . '</td></tr>';
@@ -4164,7 +4288,7 @@ function hpva_render_listing_dashboard( $listing ) {
 	}
 
 	if ( ! $views && ! $messages ) {
-		$out .= '<p class="hpva-empty">' . esc_html__( 'No data recorded for this period yet.', 'hivepress-vendor-analytics' ) . '</p>';
+		$out .= '<p class="hpva-empty">' . esc_html__( 'No data recorded for this period yet.', 'vendor-analytics-pro-for-hivepress' ) . '</p>';
 	}
 
 	return $out . hpva_admin_diagnostics() . '</div>';
@@ -4185,23 +4309,23 @@ function hpva_render_listing_summary( $listing ) {
 
 	$out  = hpva_css();
 	$out .= '<div class="hpva hpva--listing">';
-	$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Last 90 days', 'hivepress-vendor-analytics' ) . '</h3>';
+	$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Last 90 days', 'vendor-analytics-pro-for-hivepress' ) . '</h3>';
 	$out .= '<div class="hpva-cards">';
-	$out .= hpva_card( __( 'Views', 'hivepress-vendor-analytics' ), number_format_i18n( hpva_total( $vendor_id, 'view', $from, $to, $listing_id ) ) );
-	$out .= hpva_card( __( 'Messages', 'hivepress-vendor-analytics' ), number_format_i18n( hpva_total( $vendor_id, 'message', $from, $to, $listing_id ) ) );
+	$out .= hpva_card( __( 'Views', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( hpva_total( $vendor_id, 'view', $from, $to, $listing_id ) ) );
+	$out .= hpva_card( __( 'Messages', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( hpva_total( $vendor_id, 'message', $from, $to, $listing_id ) ) );
 
 	if ( class_exists( '\HivePress\Models\Booking' ) ) {
-		$out .= hpva_card( __( 'Bookings confirmed', 'hivepress-vendor-analytics' ), number_format_i18n( hpva_total( $vendor_id, 'booking_confirmed', $from, $to, $listing_id ) ) );
+		$out .= hpva_card( __( 'Bookings confirmed', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( hpva_total( $vendor_id, 'booking_confirmed', $from, $to, $listing_id ) ) );
 	}
 
-	$out .= hpva_card( __( 'Phone clicks', 'hivepress-vendor-analytics' ), number_format_i18n( hpva_total( $vendor_id, 'phone_click', $from, $to, $listing_id ) ) );
-	$out .= hpva_card( __( 'Email clicks', 'hivepress-vendor-analytics' ), number_format_i18n( hpva_total( $vendor_id, 'email_click', $from, $to, $listing_id ) ) );
+	$out .= hpva_card( __( 'Phone clicks', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( hpva_total( $vendor_id, 'phone_click', $from, $to, $listing_id ) ) );
+	$out .= hpva_card( __( 'Email clicks', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( hpva_total( $vendor_id, 'email_click', $from, $to, $listing_id ) ) );
 	$out .= '</div>';
 
 	$out .= hpva_svg_line(
 		[
 			[
-				'label'  => __( 'Views', 'hivepress-vendor-analytics' ),
+				'label'  => __( 'Views', 'vendor-analytics-pro-for-hivepress' ),
 				'color'  => '#6b7cf6',
 				'series' => hpva_series( $vendor_id, 'view', $from, $to, $listing_id ),
 			],
@@ -4212,13 +4336,13 @@ function hpva_render_listing_summary( $listing ) {
 	$terms = hpva_top_terms( $vendor_id, $from, $to, 5, $listing_id );
 
 	if ( $terms ) {
-		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Top search terms', 'hivepress-vendor-analytics' ) . '</h3><ul class="hpva-terms">';
+		$out .= '<h3 class="hp-section__title hpva-h">' . esc_html__( 'Top search terms', 'vendor-analytics-pro-for-hivepress' ) . '</h3><ul class="hpva-terms">';
 
 		foreach ( $terms as $row ) {
 			$out .= '<li>' . esc_html( $row->term ) . ' <small>' . esc_html(
 				sprintf(
 					/* translators: 1: number of times shown, 2: number of times opened. */
-					__( '%1$s shown, %2$s opened', 'hivepress-vendor-analytics' ),
+					__( '%1$s shown, %2$s opened', 'vendor-analytics-pro-for-hivepress' ),
 					number_format_i18n( (int) $row->impressions ),
 					number_format_i18n( (int) $row->clicks )
 				)
@@ -4395,12 +4519,12 @@ function hpva_plain_text( $text ) {
  */
 function hpva_breakdown_columns() {
 	return [
-		'view'              => __( 'Views', 'hivepress-vendor-analytics' ),
-		'message'           => __( 'Messages', 'hivepress-vendor-analytics' ),
-		'booking_confirmed' => __( 'Bookings', 'hivepress-vendor-analytics' ),
-		'favorite'          => __( 'Favourites', 'hivepress-vendor-analytics' ),
-		'phone_click'       => __( 'Phone', 'hivepress-vendor-analytics' ),
-		'email_click'       => __( 'Email', 'hivepress-vendor-analytics' ),
+		'view'              => __( 'Views', 'vendor-analytics-pro-for-hivepress' ),
+		'message'           => __( 'Messages', 'vendor-analytics-pro-for-hivepress' ),
+		'booking_confirmed' => __( 'Bookings', 'vendor-analytics-pro-for-hivepress' ),
+		'favorite'          => __( 'Favourites', 'vendor-analytics-pro-for-hivepress' ),
+		'phone_click'       => __( 'Phone', 'vendor-analytics-pro-for-hivepress' ),
+		'email_click'       => __( 'Email', 'vendor-analytics-pro-for-hivepress' ),
 	];
 }
 
@@ -4419,7 +4543,7 @@ function hpva_breakdown_columns() {
 function hpva_breakdown_table( $breakdown, $link_mode ) {
 	$columns = hpva_breakdown_columns();
 
-	$html = '<table class="hpva-table hpva-table--wide"><thead><tr><th>' . esc_html__( 'Listing', 'hivepress-vendor-analytics' ) . '</th>';
+	$html = '<table class="hpva-table hpva-table--wide"><thead><tr><th>' . esc_html__( 'Listing', 'vendor-analytics-pro-for-hivepress' ) . '</th>';
 
 	foreach ( $columns as $label ) {
 		$html .= '<th>' . esc_html( $label ) . '</th>';
@@ -4481,7 +4605,7 @@ function hpva_breakdown_listing( $listing_id ) {
 
 	if ( ! $post ) {
 		return [
-			'title' => __( '(deleted listing)', 'hivepress-vendor-analytics' ),
+			'title' => __( '(deleted listing)', 'vendor-analytics-pro-for-hivepress' ),
 			'link'  => false,
 		];
 	}
@@ -4489,7 +4613,7 @@ function hpva_breakdown_listing( $listing_id ) {
 	$title = get_the_title( $post );
 
 	return [
-		'title' => '' !== $title ? $title : __( '(untitled listing)', 'hivepress-vendor-analytics' ),
+		'title' => '' !== $title ? $title : __( '(untitled listing)', 'vendor-analytics-pro-for-hivepress' ),
 		'link'  => 'publish' === $post->post_status,
 	];
 }
@@ -4500,6 +4624,7 @@ function hpva_breakdown_listing( $listing_id ) {
  * @param int    $period Period in days (0 for all time).
  * @param string $from   Start date (Y-m-d).
  * @param string $to     End date (Y-m-d).
+ * @param bool   $is_month Whether the range is one calendar month (see below).
  * @return string
  */
 function hpva_period_label( $period, $from, $to, $is_month = false ) {
@@ -4513,16 +4638,16 @@ function hpva_period_label( $period, $from, $to, $is_month = false ) {
 	// mislabelled the other way.
 	if ( $is_month ) {
 		/* translators: 1: month and year, 2: date range. */
-		return sprintf( __( '%1$s (%2$s)', 'hivepress-vendor-analytics' ), date_i18n( 'F Y', strtotime( $from . ' UTC' ) ), $range );
+		return sprintf( __( '%1$s (%2$s)', 'vendor-analytics-pro-for-hivepress' ), date_i18n( 'F Y', strtotime( $from . ' UTC' ) ), $range );
 	}
 
 	if ( 0 === $period ) {
 		/* translators: %s: date range. */
-		return sprintf( __( 'All time (%s)', 'hivepress-vendor-analytics' ), $range );
+		return sprintf( __( 'All time (%s)', 'vendor-analytics-pro-for-hivepress' ), $range );
 	}
 
 	/* translators: 1: number of days, 2: date range. */
-	return sprintf( __( 'Last %1$s days (%2$s)', 'hivepress-vendor-analytics' ), number_format_i18n( $period ), $range );
+	return sprintf( __( 'Last %1$s days (%2$s)', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $period ), $range );
 }
 
 /**
@@ -4596,12 +4721,12 @@ function hpva_report_css() {
  * honouring the admin's enabled sections and the same data conditions as the
  * dashboards. Opens in the browser; printing it produces a clean PDF.
  *
- * @param int                   $vendor_id  Vendor ID.
- * @param int                   $period     Period in days (0 for all time).
- * @param int                   $listing_id Optional listing scope.
- * @param array{0:string,1:string}|null $range Optional explicit [ from, to ] dates, used by the
- *                                             monthly email so the report covers a calendar month
- *                                             rather than a rolling window.
+ * @param int                           $vendor_id  Vendor ID.
+ * @param int                           $period     Period in days (0 for all time).
+ * @param int                           $listing_id Optional listing scope.
+ * @param array{0:string,1:string}|null $range      Optional explicit [ from, to ] dates, used by
+ *                                                  the monthly email so the report covers a
+ *                                                  calendar month rather than a rolling window.
  * @return string
  */
 function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null ) {
@@ -4664,25 +4789,25 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null )
 
 	$out  = '<!DOCTYPE html><html lang="' . esc_attr( get_bloginfo( 'language' ) ) . '"><head><meta charset="utf-8">';
 	$out .= '<meta name="viewport" content="width=device-width, initial-scale=1">';
-	$out .= '<title>' . esc_html( $subject ) . ' - ' . esc_html__( 'Analytics report', 'hivepress-vendor-analytics' ) . '</title>';
+	$out .= '<title>' . esc_html( $subject ) . ' - ' . esc_html__( 'Analytics report', 'vendor-analytics-pro-for-hivepress' ) . '</title>';
 	$out .= hpva_report_css();
 	$out .= '</head><body class="hpva-report">';
 
-	$out .= '<div class="hpva-no-print"><button onclick="window.print()">' . esc_html__( 'Print or save as PDF', 'hivepress-vendor-analytics' ) . '</button>';
-	$out .= '<span>' . esc_html__( 'This report is print-ready: your browser\'s print dialogue can save it as a PDF.', 'hivepress-vendor-analytics' ) . '</span></div>';
+	$out .= '<div class="hpva-no-print"><button onclick="window.print()">' . esc_html__( 'Print or save as PDF', 'vendor-analytics-pro-for-hivepress' ) . '</button>';
+	$out .= '<span>' . esc_html__( 'This report is print-ready: your browser\'s print dialogue can save it as a PDF.', 'vendor-analytics-pro-for-hivepress' ) . '</span></div>';
 
 	$out .= '<div class="hpva-report__sheet">';
 	$out .= '<header class="hpva-report__head">';
 	$out .= '<p class="hpva-report__site">' . esc_html( hpva_site_name() ) . '</p>';
-	$out .= '<h1 class="hpva-report__title">' . esc_html( $subject ) . ' - ' . esc_html__( 'Analytics report', 'hivepress-vendor-analytics' ) . '</h1>';
+	$out .= '<h1 class="hpva-report__title">' . esc_html( $subject ) . ' - ' . esc_html__( 'Analytics report', 'vendor-analytics-pro-for-hivepress' ) . '</h1>';
 	$out .= '<p class="hpva-report__meta">' . esc_html( hpva_period_label( $period, $from, $to, (bool) $range ) );
 
 	if ( $listing_id ) {
-		$out .= ' &middot; ' . esc_html__( 'This listing only', 'hivepress-vendor-analytics' );
+		$out .= ' &middot; ' . esc_html__( 'This listing only', 'vendor-analytics-pro-for-hivepress' );
 	}
 
 	/* translators: %s: date. */
-	$out .= ' &middot; ' . esc_html( sprintf( __( 'Generated %s', 'hivepress-vendor-analytics' ), date_i18n( 'j M Y', strtotime( current_time( 'Y-m-d' ) . ' UTC' ) ) ) ) . '</p>';
+	$out .= ' &middot; ' . esc_html( sprintf( __( 'Generated %s', 'vendor-analytics-pro-for-hivepress' ), date_i18n( 'j M Y', strtotime( current_time( 'Y-m-d' ) . ' UTC' ) ) ) ) . '</p>';
 	$out .= '</header>';
 
 	$views    = $m( 'view' );
@@ -4695,61 +4820,61 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null )
 	$orders   = $m( 'order' );
 
 	if ( hpva_section_on( 'summary' ) ) {
-		$out .= '<h2 class="hpva-h2">' . esc_html__( 'Summary', 'hivepress-vendor-analytics' ) . '</h2>';
+		$out .= '<h2 class="hpva-h2">' . esc_html__( 'Summary', 'vendor-analytics-pro-for-hivepress' ) . '</h2>';
 
 		if ( $prev_label ) {
 			$out .= '<p class="hpva-sub">' . sprintf(
 				/* translators: %s: month and year, e.g. July 2026. */
-				esc_html__( 'Changes compare against %s.', 'hivepress-vendor-analytics' ),
+				esc_html__( 'Changes compare against %s.', 'vendor-analytics-pro-for-hivepress' ),
 				esc_html( $prev_label )
 			) . '</p>';
 		} elseif ( 0 !== $period ) {
 			$out .= '<p class="hpva-sub">' . sprintf(
 				/* translators: %s: number of days. */
-				esc_html__( 'Changes compare against the previous %s days.', 'hivepress-vendor-analytics' ),
+				esc_html__( 'Changes compare against the previous %s days.', 'vendor-analytics-pro-for-hivepress' ),
 				number_format_i18n( $period )
 			) . '</p>';
 		}
 
 		$out .= '<div class="hpva-cards">';
-		$out .= hpva_card( $listing_id ? __( 'Views', 'hivepress-vendor-analytics' ) : __( 'Listing views', 'hivepress-vendor-analytics' ), number_format_i18n( $views ), '', $d( 'view' ) );
+		$out .= hpva_card( $listing_id ? __( 'Views', 'vendor-analytics-pro-for-hivepress' ) : __( 'Listing views', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $views ), '', $d( 'view' ) );
 
 		if ( ! $listing_id ) {
-			$out .= hpva_card( __( 'Profile views', 'hivepress-vendor-analytics' ), number_format_i18n( $m( 'vendor_view' ) ), '', $d( 'vendor_view' ) );
+			$out .= hpva_card( __( 'Profile views', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $m( 'vendor_view' ) ), '', $d( 'vendor_view' ) );
 		}
 
-		$out .= hpva_card( __( 'Messages received', 'hivepress-vendor-analytics' ), number_format_i18n( $messages ), '', $d( 'message' ) );
+		$out .= hpva_card( __( 'Messages received', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $messages ), '', $d( 'message' ) );
 
 		if ( class_exists( '\HivePress\Models\Booking' ) ) {
-			$out .= hpva_card( __( 'Bookings confirmed', 'hivepress-vendor-analytics' ), number_format_i18n( $b_conf ), '', $d( 'booking_confirmed' ) );
+			$out .= hpva_card( __( 'Bookings confirmed', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $b_conf ), '', $d( 'booking_confirmed' ) );
 		}
 
 		if ( class_exists( '\HivePress\Models\Favorite' ) ) {
-			$out .= hpva_card( __( 'Favourites gained', 'hivepress-vendor-analytics' ), number_format_i18n( $m( 'favorite' ) ), '', $d( 'favorite' ) );
+			$out .= hpva_card( __( 'Favourites gained', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $m( 'favorite' ) ), '', $d( 'favorite' ) );
 		}
 
-		$out .= hpva_card( __( 'Phone clicks', 'hivepress-vendor-analytics' ), number_format_i18n( $m( 'phone_click' ) ), '', $d( 'phone_click' ) );
-		$out .= hpva_card( __( 'Email clicks', 'hivepress-vendor-analytics' ), number_format_i18n( $m( 'email_click' ) ), '', $d( 'email_click' ) );
+		$out .= hpva_card( __( 'Phone clicks', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $m( 'phone_click' ) ), '', $d( 'phone_click' ) );
+		$out .= hpva_card( __( 'Email clicks', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $m( 'email_click' ) ), '', $d( 'email_click' ) );
 
 		if ( ! $listing_id && class_exists( '\HivePress\Models\Offer' ) ) {
-			$out .= hpva_card( __( 'Offers sent', 'hivepress-vendor-analytics' ), number_format_i18n( $m( 'offer_sent' ) ), '', $d( 'offer_sent' ) );
+			$out .= hpva_card( __( 'Offers sent', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $m( 'offer_sent' ) ), '', $d( 'offer_sent' ) );
 
 			if ( $m( 'offer_accepted' ) || ( isset( $prev['offer_accepted'] ) && $prev['offer_accepted'] ) ) {
-				$out .= hpva_card( __( 'Offers accepted', 'hivepress-vendor-analytics' ), number_format_i18n( $m( 'offer_accepted' ) ), '', $d( 'offer_accepted' ) );
+				$out .= hpva_card( __( 'Offers accepted', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $m( 'offer_accepted' ) ), '', $d( 'offer_accepted' ) );
 			}
 		}
 
 		if ( ! $listing_id && ( $orders || $earnings ) ) {
-			$out .= hpva_card( __( 'Orders completed', 'hivepress-vendor-analytics' ), number_format_i18n( $orders ), '', $d( 'order' ) );
-			$out .= hpva_card( __( 'Earnings', 'hivepress-vendor-analytics' ), hpva_money( $earnings ), __( 'What you keep after commission, counted when each order is paid. Totals elsewhere on the site may show the full order value, which is higher.', 'hivepress-vendor-analytics' ), $d( 'earning_minor' ) );
-			$out .= hpva_card( __( 'Refunded', 'hivepress-vendor-analytics' ), hpva_money( $refunds ), __( 'Your share of anything refunded since', 'hivepress-vendor-analytics' ), $d( 'refund_minor' ), true );
-			$out .= hpva_card( __( 'Net earnings', 'hivepress-vendor-analytics' ), hpva_money( max( 0, $earnings - $refunds ) ), __( 'Earnings after refunds', 'hivepress-vendor-analytics' ) );
+			$out .= hpva_card( __( 'Orders completed', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $orders ), '', $d( 'order' ) );
+			$out .= hpva_card( __( 'Earnings', 'vendor-analytics-pro-for-hivepress' ), hpva_money( $earnings ), __( 'What you keep after commission, counted when each order is paid. Totals elsewhere on the site may show the full order value, which is higher.', 'vendor-analytics-pro-for-hivepress' ), $d( 'earning_minor' ) );
+			$out .= hpva_card( __( 'Refunded', 'vendor-analytics-pro-for-hivepress' ), hpva_money( $refunds ), __( 'Your share of anything refunded since', 'vendor-analytics-pro-for-hivepress' ), $d( 'refund_minor' ), true );
+			$out .= hpva_card( __( 'Net earnings', 'vendor-analytics-pro-for-hivepress' ), hpva_money( max( 0, $earnings - $refunds ) ), __( 'Earnings after refunds', 'vendor-analytics-pro-for-hivepress' ) );
 		}
 
 		if ( ! $listing_id && $resp_n > 0 ) {
 			$prev_avg  = ( isset( $prev['response_count'] ) && $prev['response_count'] > 0 ) ? $prev['response_sum'] / $prev['response_count'] : 0;
 			$avg_delta = ( 0 !== $period ) ? hpva_delta( $resp_sum / $resp_n, $prev_avg ) : null;
-			$out      .= hpva_card( __( 'Avg first response', 'hivepress-vendor-analytics' ), hpva_duration( $resp_sum / $resp_n ), __( 'From a customer\'s first message to your first reply', 'hivepress-vendor-analytics' ), $avg_delta, true );
+			$out      .= hpva_card( __( 'Avg first response', 'vendor-analytics-pro-for-hivepress' ), hpva_duration( $resp_sum / $resp_n ), __( 'From a customer\'s first message to your first reply', 'vendor-analytics-pro-for-hivepress' ), $avg_delta, true );
 		}
 
 		$out .= '</div>';
@@ -4758,38 +4883,38 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null )
 	if ( hpva_section_on( 'funnel' ) ) {
 		$funnel_steps = [
 			[
-				'label' => __( 'Views', 'hivepress-vendor-analytics' ),
+				'label' => __( 'Views', 'vendor-analytics-pro-for-hivepress' ),
 				'value' => $views,
 			],
 			[
-				'label' => __( 'Messages', 'hivepress-vendor-analytics' ),
+				'label' => __( 'Messages', 'vendor-analytics-pro-for-hivepress' ),
 				'value' => $messages,
 			],
 		];
 
 		if ( class_exists( '\HivePress\Models\Booking' ) ) {
 			$funnel_steps[] = [
-				'label' => __( 'Bookings', 'hivepress-vendor-analytics' ),
+				'label' => __( 'Bookings', 'vendor-analytics-pro-for-hivepress' ),
 				'value' => $b_conf,
 			];
 		}
 
-		$out .= '<h2 class="hpva-h2">' . esc_html__( 'Conversion funnel', 'hivepress-vendor-analytics' ) . '</h2>'
-			. '<p class="hpva-sub">' . esc_html__( 'How many of the people who saw your listings went on to contact you, and how many of those went on to book.', 'hivepress-vendor-analytics' ) . '</p>';
+		$out .= '<h2 class="hpva-h2">' . esc_html__( 'Conversion funnel', 'vendor-analytics-pro-for-hivepress' ) . '</h2>'
+			. '<p class="hpva-sub">' . esc_html__( 'How many of the people who saw your listings went on to contact you, and how many of those went on to book.', 'vendor-analytics-pro-for-hivepress' ) . '</p>';
 		$out .= hpva_render_funnel( $funnel_steps );
 	}
 
 	if ( hpva_section_on( 'trend' ) ) {
-		$out .= '<h2 class="hpva-h2">' . esc_html__( 'Views & messages', 'hivepress-vendor-analytics' ) . '</h2>';
+		$out .= '<h2 class="hpva-h2">' . esc_html__( 'Views & messages', 'vendor-analytics-pro-for-hivepress' ) . '</h2>';
 		$out .= hpva_svg_line(
 			[
 				[
-					'label'  => __( 'Views', 'hivepress-vendor-analytics' ),
+					'label'  => __( 'Views', 'vendor-analytics-pro-for-hivepress' ),
 					'color'  => '#6b7cf6',
 					'series' => hpva_series( $vendor_id, 'view', $chart_from, $to, $scope ),
 				],
 				[
-					'label'  => __( 'Messages', 'hivepress-vendor-analytics' ),
+					'label'  => __( 'Messages', 'vendor-analytics-pro-for-hivepress' ),
 					'color'  => '#f6a56b',
 					'series' => hpva_series( $vendor_id, 'message', $chart_from, $to, $scope ),
 				],
@@ -4807,11 +4932,11 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null )
 			$avg_series[ $day ] = $n > 0 ? (int) round( $sum / $n / 60 ) : 0;
 		}
 
-		$out .= '<h2 class="hpva-h2">' . esc_html__( 'First response time (minutes, daily average)', 'hivepress-vendor-analytics' ) . '</h2>';
+		$out .= '<h2 class="hpva-h2">' . esc_html__( 'First response time (minutes, daily average)', 'vendor-analytics-pro-for-hivepress' ) . '</h2>';
 		$out .= hpva_svg_line(
 			[
 				[
-					'label'  => __( 'Minutes', 'hivepress-vendor-analytics' ),
+					'label'  => __( 'Minutes', 'vendor-analytics-pro-for-hivepress' ),
 					'color'  => '#4fb286',
 					'series' => $avg_series,
 				],
@@ -4827,11 +4952,11 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null )
 			$e_series[ $day ] = (int) round( $minor / $factor );
 		}
 
-		$out .= '<h2 class="hpva-h2">' . esc_html__( 'Earnings', 'hivepress-vendor-analytics' ) . '</h2>';
+		$out .= '<h2 class="hpva-h2">' . esc_html__( 'Earnings', 'vendor-analytics-pro-for-hivepress' ) . '</h2>';
 		$out .= hpva_svg_line(
 			[
 				[
-					'label'  => __( 'Earnings', 'hivepress-vendor-analytics' ),
+					'label'  => __( 'Earnings', 'vendor-analytics-pro-for-hivepress' ),
 					'color'  => '#4fb286',
 					'series' => $e_series,
 				],
@@ -4843,12 +4968,12 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null )
 		$benchmark = hpva_benchmark( $vendor_id, $from, $to );
 
 		if ( $benchmark ) {
-			$out .= '<h2 class="hpva-h2">' . esc_html__( 'Category benchmark', 'hivepress-vendor-analytics' ) . '</h2>';
+			$out .= '<h2 class="hpva-h2">' . esc_html__( 'Category benchmark', 'vendor-analytics-pro-for-hivepress' ) . '</h2>';
 			$out .= '<div class="hpva-cards">';
-			$out .= hpva_card( __( 'Your avg daily views / listing', 'hivepress-vendor-analytics' ), number_format_i18n( $benchmark['vendor_avg'], 2 ) );
+			$out .= hpva_card( __( 'Your avg daily views / listing', 'vendor-analytics-pro-for-hivepress' ), number_format_i18n( $benchmark['vendor_avg'], 2 ) );
 			$out .= hpva_card(
 				/* translators: %s: category name. */
-				sprintf( __( '%s average', 'hivepress-vendor-analytics' ), $benchmark['category_name'] ),
+				sprintf( __( '%s average', 'vendor-analytics-pro-for-hivepress' ), $benchmark['category_name'] ),
 				number_format_i18n( $benchmark['category_avg'], 2 )
 			);
 			$out .= '</div>';
@@ -4859,8 +4984,8 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null )
 		$terms = hpva_top_terms( $vendor_id, $from, $to, 15, $scope );
 
 		if ( $terms ) {
-			$out .= '<h2 class="hpva-h2">' . esc_html__( 'Search terms', 'hivepress-vendor-analytics' ) . '</h2>';
-			$out .= '<table class="hpva-table"><thead><tr><th>' . esc_html__( 'Term', 'hivepress-vendor-analytics' ) . '</th><th>' . esc_html__( 'Impressions', 'hivepress-vendor-analytics' ) . '</th><th>' . esc_html__( 'Clicks', 'hivepress-vendor-analytics' ) . '</th></tr></thead><tbody>';
+			$out .= '<h2 class="hpva-h2">' . esc_html__( 'Search terms', 'vendor-analytics-pro-for-hivepress' ) . '</h2>';
+			$out .= '<table class="hpva-table"><thead><tr><th>' . esc_html__( 'Term', 'vendor-analytics-pro-for-hivepress' ) . '</th><th>' . esc_html__( 'Impressions', 'vendor-analytics-pro-for-hivepress' ) . '</th><th>' . esc_html__( 'Clicks', 'vendor-analytics-pro-for-hivepress' ) . '</th></tr></thead><tbody>';
 
 			foreach ( $terms as $row ) {
 				$out .= '<tr><td>' . esc_html( $row->term ) . '</td><td>' . esc_html( number_format_i18n( (int) $row->impressions ) ) . '</td><td>' . esc_html( number_format_i18n( (int) $row->clicks ) ) . '</td></tr>';
@@ -4874,17 +4999,17 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null )
 		$breakdown = hpva_listing_breakdown( $vendor_id, $from, $to );
 
 		if ( $breakdown ) {
-			$out .= '<h2 class="hpva-h2">' . esc_html__( 'Per-listing breakdown', 'hivepress-vendor-analytics' ) . '</h2>';
-			$out .= '<p class="hpva-sub">' . esc_html__( 'Ranked by views for the selected period, best performer first.', 'hivepress-vendor-analytics' ) . '</p>';
+			$out .= '<h2 class="hpva-h2">' . esc_html__( 'Per-listing breakdown', 'vendor-analytics-pro-for-hivepress' ) . '</h2>';
+			$out .= '<p class="hpva-sub">' . esc_html__( 'Ranked by views for the selected period, best performer first.', 'vendor-analytics-pro-for-hivepress' ) . '</p>';
 			$out .= hpva_breakdown_table( $breakdown, 'permalink' );
 		}
 	}
 
 	if ( ! $views && ! $messages ) {
-		$out .= '<p class="hpva-empty">' . esc_html__( 'No data recorded for this period yet.', 'hivepress-vendor-analytics' ) . '</p>';
+		$out .= '<p class="hpva-empty">' . esc_html__( 'No data recorded for this period yet.', 'vendor-analytics-pro-for-hivepress' ) . '</p>';
 	}
 
-	$out .= '<p class="hpva-report__foot">' . esc_html__( 'Generated by Vendor Analytics Pro for HivePress', 'hivepress-vendor-analytics' ) . ' &middot; ' . esc_html( hpva_site_name() ) . '</p>';
+	$out .= '<p class="hpva-report__foot">' . esc_html__( 'Generated by Vendor Analytics Pro for HivePress', 'vendor-analytics-pro-for-hivepress' ) . ' &middot; ' . esc_html( hpva_site_name() ) . '</p>';
 
 	return $out . '</div></body></html>';
 }
@@ -4947,65 +5072,65 @@ function hpva_report_csv_rows( $vendor_id, $period, $listing_id = 0 ) {
 
 		if ( 'up' === $delta['dir'] ) {
 			/* translators: %s: percentage. */
-			return sprintf( __( 'Up %s', 'hivepress-vendor-analytics' ), ltrim( $delta['text'], '+' ) );
+			return sprintf( __( 'Up %s', 'vendor-analytics-pro-for-hivepress' ), ltrim( $delta['text'], '+' ) );
 		}
 
 		if ( 'down' === $delta['dir'] ) {
 			/* translators: %s: percentage. */
-			return sprintf( __( 'Down %s', 'hivepress-vendor-analytics' ), ltrim( $delta['text'], '-' ) );
+			return sprintf( __( 'Down %s', 'vendor-analytics-pro-for-hivepress' ), ltrim( $delta['text'], '-' ) );
 		}
 
 		return $delta['text'];
 	};
 
 	$rows   = [];
-	$rows[] = [ hpva_csv_field( __( 'Vendor analytics report', 'hivepress-vendor-analytics' ) ) ];
-	$rows[] = [ hpva_csv_field( __( 'Site', 'hivepress-vendor-analytics' ) ), hpva_csv_field( hpva_site_name() ) ];
-	$rows[] = [ hpva_csv_field( __( 'Vendor', 'hivepress-vendor-analytics' ) ), hpva_csv_field( hpva_plain_text( get_the_title( $vendor_id ) ) ) ];
+	$rows[] = [ hpva_csv_field( __( 'Vendor analytics report', 'vendor-analytics-pro-for-hivepress' ) ) ];
+	$rows[] = [ hpva_csv_field( __( 'Site', 'vendor-analytics-pro-for-hivepress' ) ), hpva_csv_field( hpva_site_name() ) ];
+	$rows[] = [ hpva_csv_field( __( 'Vendor', 'vendor-analytics-pro-for-hivepress' ) ), hpva_csv_field( hpva_plain_text( get_the_title( $vendor_id ) ) ) ];
 
 	if ( $listing_id ) {
-		$rows[] = [ hpva_csv_field( __( 'Listing', 'hivepress-vendor-analytics' ) ), hpva_csv_field( hpva_plain_text( get_the_title( $listing_id ) ) ) ];
+		$rows[] = [ hpva_csv_field( __( 'Listing', 'vendor-analytics-pro-for-hivepress' ) ), hpva_csv_field( hpva_plain_text( get_the_title( $listing_id ) ) ) ];
 	}
 
-	$rows[] = [ hpva_csv_field( __( 'Period', 'hivepress-vendor-analytics' ) ), hpva_csv_field( hpva_period_label( $period, $from, $to ) ) ];
-	$rows[] = [ hpva_csv_field( __( 'Generated', 'hivepress-vendor-analytics' ) ), hpva_csv_field( date_i18n( 'j M Y', strtotime( current_time( 'Y-m-d' ) . ' UTC' ) ) ) ];
+	$rows[] = [ hpva_csv_field( __( 'Period', 'vendor-analytics-pro-for-hivepress' ) ), hpva_csv_field( hpva_period_label( $period, $from, $to ) ) ];
+	$rows[] = [ hpva_csv_field( __( 'Generated', 'vendor-analytics-pro-for-hivepress' ) ), hpva_csv_field( date_i18n( 'j M Y', strtotime( current_time( 'Y-m-d' ) . ' UTC' ) ) ) ];
 
 	if ( hpva_section_on( 'summary' ) ) {
 		$rows[] = [];
-		$rows[] = [ hpva_csv_field( __( 'SUMMARY', 'hivepress-vendor-analytics' ) ) ];
+		$rows[] = [ hpva_csv_field( __( 'SUMMARY', 'vendor-analytics-pro-for-hivepress' ) ) ];
 		$rows[] = [
-			hpva_csv_field( __( 'Metric', 'hivepress-vendor-analytics' ) ),
-			hpva_csv_field( __( 'This period', 'hivepress-vendor-analytics' ) ),
-			hpva_csv_field( __( 'Previous period', 'hivepress-vendor-analytics' ) ),
-			hpva_csv_field( __( 'Change', 'hivepress-vendor-analytics' ) ),
+			hpva_csv_field( __( 'Metric', 'vendor-analytics-pro-for-hivepress' ) ),
+			hpva_csv_field( __( 'This period', 'vendor-analytics-pro-for-hivepress' ) ),
+			hpva_csv_field( __( 'Previous period', 'vendor-analytics-pro-for-hivepress' ) ),
+			hpva_csv_field( __( 'Change', 'vendor-analytics-pro-for-hivepress' ) ),
 		];
 
 		$metric_rows = [
-			[ 'view', $listing_id ? __( 'Views', 'hivepress-vendor-analytics' ) : __( 'Listing views', 'hivepress-vendor-analytics' ) ],
+			[ 'view', $listing_id ? __( 'Views', 'vendor-analytics-pro-for-hivepress' ) : __( 'Listing views', 'vendor-analytics-pro-for-hivepress' ) ],
 		];
 
 		if ( ! $listing_id ) {
-			$metric_rows[] = [ 'vendor_view', __( 'Profile views', 'hivepress-vendor-analytics' ) ];
+			$metric_rows[] = [ 'vendor_view', __( 'Profile views', 'vendor-analytics-pro-for-hivepress' ) ];
 		}
 
-		$metric_rows[] = [ 'message', __( 'Messages received', 'hivepress-vendor-analytics' ) ];
+		$metric_rows[] = [ 'message', __( 'Messages received', 'vendor-analytics-pro-for-hivepress' ) ];
 
 		if ( class_exists( '\HivePress\Models\Booking' ) ) {
-			$metric_rows[] = [ 'booking_new', __( 'Bookings created', 'hivepress-vendor-analytics' ) ];
-			$metric_rows[] = [ 'booking_confirmed', __( 'Bookings confirmed', 'hivepress-vendor-analytics' ) ];
+			$metric_rows[] = [ 'booking_new', __( 'Bookings created', 'vendor-analytics-pro-for-hivepress' ) ];
+			$metric_rows[] = [ 'booking_confirmed', __( 'Bookings confirmed', 'vendor-analytics-pro-for-hivepress' ) ];
 		}
 
 		if ( class_exists( '\HivePress\Models\Favorite' ) ) {
-			$metric_rows[] = [ 'favorite', __( 'Favourites gained', 'hivepress-vendor-analytics' ) ];
-			$metric_rows[] = [ 'favorite_removed', __( 'Favourites removed', 'hivepress-vendor-analytics' ) ];
+			$metric_rows[] = [ 'favorite', __( 'Favourites gained', 'vendor-analytics-pro-for-hivepress' ) ];
+			$metric_rows[] = [ 'favorite_removed', __( 'Favourites removed', 'vendor-analytics-pro-for-hivepress' ) ];
 		}
 
-		$metric_rows[] = [ 'phone_click', __( 'Phone clicks', 'hivepress-vendor-analytics' ) ];
-		$metric_rows[] = [ 'email_click', __( 'Email clicks', 'hivepress-vendor-analytics' ) ];
+		$metric_rows[] = [ 'phone_click', __( 'Phone clicks', 'vendor-analytics-pro-for-hivepress' ) ];
+		$metric_rows[] = [ 'email_click', __( 'Email clicks', 'vendor-analytics-pro-for-hivepress' ) ];
 
 		if ( ! $listing_id && class_exists( '\HivePress\Models\Offer' ) ) {
-			$metric_rows[] = [ 'offer_sent', __( 'Offers sent', 'hivepress-vendor-analytics' ) ];
-			$metric_rows[] = [ 'offer_accepted', __( 'Offers accepted', 'hivepress-vendor-analytics' ) ];
+			$metric_rows[] = [ 'offer_sent', __( 'Offers sent', 'vendor-analytics-pro-for-hivepress' ) ];
+			$metric_rows[] = [ 'offer_accepted', __( 'Offers accepted', 'vendor-analytics-pro-for-hivepress' ) ];
 		}
 
 		foreach ( $metric_rows as $metric_row ) {
@@ -5018,16 +5143,16 @@ function hpva_report_csv_rows( $vendor_id, $period, $listing_id = 0 ) {
 		}
 
 		if ( ! $listing_id && ( $m( 'order' ) || $m( 'earning_minor' ) || $p( 'order' ) ) ) {
-			$rows[] = [ hpva_csv_field( __( 'Orders completed', 'hivepress-vendor-analytics' ) ), $m( 'order' ), 0 === $period ? '' : $p( 'order' ), hpva_csv_field( $change( 'order' ) ) ];
-			$rows[] = [ hpva_csv_field( __( 'Earnings', 'hivepress-vendor-analytics' ) ), hpva_csv_field( hpva_money( $m( 'earning_minor' ) ) ), 0 === $period ? '' : hpva_csv_field( hpva_money( $p( 'earning_minor' ) ) ), hpva_csv_field( $change( 'earning_minor' ) ) ];
-			$rows[] = [ hpva_csv_field( __( 'Refunded', 'hivepress-vendor-analytics' ) ), hpva_csv_field( hpva_money( $m( 'refund_minor' ) ) ), 0 === $period ? '' : hpva_csv_field( hpva_money( $p( 'refund_minor' ) ) ), hpva_csv_field( $change( 'refund_minor' ) ) ];
-			$rows[] = [ hpva_csv_field( __( 'Net earnings', 'hivepress-vendor-analytics' ) ), hpva_csv_field( hpva_money( max( 0, $m( 'earning_minor' ) - $m( 'refund_minor' ) ) ) ), 0 === $period ? '' : hpva_csv_field( hpva_money( max( 0, $p( 'earning_minor' ) - $p( 'refund_minor' ) ) ) ), '' ];
+			$rows[] = [ hpva_csv_field( __( 'Orders completed', 'vendor-analytics-pro-for-hivepress' ) ), $m( 'order' ), 0 === $period ? '' : $p( 'order' ), hpva_csv_field( $change( 'order' ) ) ];
+			$rows[] = [ hpva_csv_field( __( 'Earnings', 'vendor-analytics-pro-for-hivepress' ) ), hpva_csv_field( hpva_money( $m( 'earning_minor' ) ) ), 0 === $period ? '' : hpva_csv_field( hpva_money( $p( 'earning_minor' ) ) ), hpva_csv_field( $change( 'earning_minor' ) ) ];
+			$rows[] = [ hpva_csv_field( __( 'Refunded', 'vendor-analytics-pro-for-hivepress' ) ), hpva_csv_field( hpva_money( $m( 'refund_minor' ) ) ), 0 === $period ? '' : hpva_csv_field( hpva_money( $p( 'refund_minor' ) ) ), hpva_csv_field( $change( 'refund_minor' ) ) ];
+			$rows[] = [ hpva_csv_field( __( 'Net earnings', 'vendor-analytics-pro-for-hivepress' ) ), hpva_csv_field( hpva_money( max( 0, $m( 'earning_minor' ) - $m( 'refund_minor' ) ) ) ), 0 === $period ? '' : hpva_csv_field( hpva_money( max( 0, $p( 'earning_minor' ) - $p( 'refund_minor' ) ) ) ), '' ];
 		}
 
 		if ( ! $listing_id && $m( 'response_count' ) > 0 ) {
 			$prev_avg = $p( 'response_count' ) > 0 ? hpva_duration( $p( 'response_sum' ) / $p( 'response_count' ) ) : '';
 			$rows[]   = [
-				hpva_csv_field( __( 'Avg first response', 'hivepress-vendor-analytics' ) ),
+				hpva_csv_field( __( 'Avg first response', 'vendor-analytics-pro-for-hivepress' ) ),
 				hpva_csv_field( hpva_duration( $m( 'response_sum' ) / $m( 'response_count' ) ) ),
 				0 === $period ? '' : hpva_csv_field( $prev_avg ),
 				'',
@@ -5040,11 +5165,11 @@ function hpva_report_csv_rows( $vendor_id, $period, $listing_id = 0 ) {
 
 		if ( $breakdown ) {
 			$rows[] = [];
-			$rows[] = [ hpva_csv_field( __( 'PER-LISTING BREAKDOWN', 'hivepress-vendor-analytics' ) ) ];
+			$rows[] = [ hpva_csv_field( __( 'PER-LISTING BREAKDOWN', 'vendor-analytics-pro-for-hivepress' ) ) ];
 
 			$header_row = [
-				hpva_csv_field( __( 'Rank', 'hivepress-vendor-analytics' ) ),
-				hpva_csv_field( __( 'Listing', 'hivepress-vendor-analytics' ) ),
+				hpva_csv_field( __( 'Rank', 'vendor-analytics-pro-for-hivepress' ) ),
+				hpva_csv_field( __( 'Listing', 'vendor-analytics-pro-for-hivepress' ) ),
 			];
 
 			foreach ( hpva_breakdown_columns() as $column_label ) {
@@ -5075,8 +5200,8 @@ function hpva_report_csv_rows( $vendor_id, $period, $listing_id = 0 ) {
 
 		if ( $terms ) {
 			$rows[] = [];
-			$rows[] = [ hpva_csv_field( __( 'SEARCH TERMS', 'hivepress-vendor-analytics' ) ) ];
-			$rows[] = [ hpva_csv_field( __( 'Term', 'hivepress-vendor-analytics' ) ), hpva_csv_field( __( 'Impressions', 'hivepress-vendor-analytics' ) ), hpva_csv_field( __( 'Clicks', 'hivepress-vendor-analytics' ) ) ];
+			$rows[] = [ hpva_csv_field( __( 'SEARCH TERMS', 'vendor-analytics-pro-for-hivepress' ) ) ];
+			$rows[] = [ hpva_csv_field( __( 'Term', 'vendor-analytics-pro-for-hivepress' ) ), hpva_csv_field( __( 'Impressions', 'vendor-analytics-pro-for-hivepress' ) ), hpva_csv_field( __( 'Clicks', 'vendor-analytics-pro-for-hivepress' ) ) ];
 
 			foreach ( $terms as $row ) {
 				$rows[] = [ hpva_csv_field( $row->term ), (int) $row->impressions, (int) $row->clicks ];
@@ -5243,7 +5368,8 @@ function hpva_monthly_choice( $user_id, $key, $fallback ) {
 /**
  * Adds the vendor's own monthly email controls to their account settings form.
  *
- * @param array $form Form arguments.
+ * @param array       $form   Form arguments.
+ * @param object|null $object Form object (see the guard below).
  * @return array
  */
 function hpva_add_monthly_fields( $form, $object = null ) {
@@ -5275,16 +5401,16 @@ function hpva_add_monthly_fields( $form, $object = null ) {
 	}
 
 	$form['fields']['hpva_monthly'] = [
-		'label'   => __( 'Monthly analytics email', 'hivepress-vendor-analytics' ),
-		'caption' => __( 'Email me a summary of my listings each month', 'hivepress-vendor-analytics' ),
+		'label'   => __( 'Monthly analytics email', 'vendor-analytics-pro-for-hivepress' ),
+		'caption' => __( 'Email me a summary of my listings each month', 'vendor-analytics-pro-for-hivepress' ),
 		'type'    => 'checkbox',
 		'default' => hpva_monthly_choice( $user_id, '_hpva_monthly', true ),
 		'_order'  => 610,
 	];
 
 	$form['fields']['hpva_monthly_quiet'] = [
-		'label'   => __( 'Quiet months', 'hivepress-vendor-analytics' ),
-		'caption' => __( 'Send it even if there was no activity that month', 'hivepress-vendor-analytics' ),
+		'label'   => __( 'Quiet months', 'vendor-analytics-pro-for-hivepress' ),
+		'caption' => __( 'Send it even if there was no activity that month', 'vendor-analytics-pro-for-hivepress' ),
 		'type'    => 'checkbox',
 		'default' => hpva_monthly_choice( $user_id, '_hpva_monthly_quiet', (bool) hpva_get_option( 'vendor_analytics_monthly_quiet', false ) ),
 		'_order'  => 620,
@@ -5361,7 +5487,7 @@ function hpva_save_monthly_choice( $user_id ) {
 	// explicit '0' - a silent unsubscribe that the admin default can never
 	// undo, because '0' is no longer "never chose". There is no case where the
 	// target should differ from the actor.
-	if ( (int) $user_id !== get_current_user_id() ) {
+	if ( get_current_user_id() !== (int) $user_id ) {
 		return;
 	}
 

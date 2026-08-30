@@ -1,0 +1,324 @@
+/**
+ * Settings screen only.
+ *
+ * Two kinds of rule live here. The shared settings chrome below is copied from
+ * the reference implementation and is deliberately identical in every sibling
+ * plugin. Everything after it is this plugin's own, scoped by .hpva-settings,
+ * the class admin.js puts on the settings form once it has found our own fields
+ * there, so nothing here can leak onto another tab or another plugin's
+ * settings.
+ */
+
+/* ==========================================================================
+ * SHARED SETTINGS CHROME
+ *
+ * The quick-links nav, the floating Save control and the back-to-top button,
+ * all injected by admin.js. Copied verbatim from the reference
+ * implementation (account-menu-enhancer-for-hivepress, assets/css/backend.css)
+ * with only the `hpva-` prefix changed, so this block is self-contained.
+ *
+ * DO NOT RESTYLE IT HERE. An owner moving from this tab to another extension's
+ * tab must find the same nav in the same place, the same Save tab on the same
+ * edge and the same back-to-top button in the same corner. If one of these
+ * rules is genuinely wrong, fix it in the reference first and sweep every
+ * sibling in the same session (resources/hivepress-settings.md, "The settings
+ * anchor nav: one shared marker class").
+ *
+ * Every piece carries a shared marker class as well as the prefixed one. THE
+ * MARKERS ARE NEVER STYLED: they exist so a sibling can find a nav that is
+ * already there and stand down. Style only the prefixed class, so one plugin's
+ * chrome can never restyle another's.
+ *
+ * The admin bar is fixed and overlays the top of the page, so anything that
+ * sticks, and every scroll target, has to clear it: 32px normally, 46px below
+ * 783px where WordPress makes it taller. The nav is the sticky thing here, so
+ * a heading has to clear the admin bar AND the nav, which is why the
+ * scroll-margin values are larger than the offsets.
+ * ========================================================================== */
+
+:root {
+	--hpva-admin-bar: 32px;
+	--hpva-nav-height: 46px;
+}
+
+@media screen and (max-width: 782px) {
+	:root {
+		--hpva-admin-bar: 46px;
+	}
+}
+
+/*
+ * The admin bar stops being fixed below 601px and scrolls away with the page,
+ * so nothing needs to clear it there.
+ */
+@media screen and (max-width: 600px) {
+	:root {
+		--hpva-admin-bar: 0px;
+	}
+}
+
+/*
+ * Quick links to each settings section, injected above the first heading
+ * because WordPress renders sections as bare <h2>s with no anchors.
+ *
+ * Sticky, so a long tab can be navigated from anywhere on it. The z-index sits
+ * above the form but below the admin bar's own 99999, and the background is
+ * opaque so the fields scroll underneath rather than through it.
+ */
+.hpva-settings-nav {
+	position: sticky;
+	top: var(--hpva-admin-bar);
+	z-index: 100;
+	display: flex;
+	flex-wrap: wrap;
+
+	/*
+	 * Centre the row's contents on their line.
+	 *
+	 * Without this the flex default of `stretch` applies: the pill links are
+	 * inline-block and take their own height, while the bare label span is
+	 * stretched to the full height of the line and its text then renders at
+	 * the TOP of that stretched box, sitting visibly higher than the pills.
+	 * The fix belongs here rather than on the label, because a margin or a
+	 * relative nudge would only paper over it and would come apart the moment
+	 * the links wrap to a second line - which they do at narrow widths. With
+	 * this, each line centres its own contents however many lines there are.
+	 */
+	align-items: center;
+	gap: 6px 8px;
+	margin: 16px 0 8px;
+	padding: 12px 16px;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	background: #fff;
+}
+
+/*
+ * The bar names itself before its links. Part of the house chrome spec, so
+ * this rule is the reference the sibling plugins copy.
+ */
+.hpva-settings-nav__label {
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.6;
+	color: #50575e;
+}
+
+.hpva-settings-nav a {
+	display: inline-block;
+	padding: 3px 10px;
+	border: 1px solid #dcdcde;
+	border-radius: 9999px;
+	text-decoration: none;
+	font-size: 12px;
+	line-height: 1.6;
+}
+
+.hpva-settings-nav a:hover,
+.hpva-settings-nav a:focus {
+	border-color: #2271b1;
+}
+
+/*
+ * Section dividers, and room for the admin bar AND the sticky nav above them,
+ * so a quick link never lands a heading underneath the bar it was clicked in.
+ */
+.hp-page .hp-form--table h2.hpva-section-heading {
+	margin-top: 8px;
+	padding-top: 24px;
+	border-top: 1px solid #dcdcde;
+	scroll-margin-top: calc(var(--hpva-admin-bar) + var(--hpva-nav-height) + 16px);
+}
+
+.hp-page .hp-form--table h2.hpva-section-heading--first {
+	padding-top: 0;
+	border-top: 0;
+}
+
+/*
+ * The floating Save control: a genuine sideways tab on the right edge, always
+ * within reach on a long tab. It presses the form's own submit button rather
+ * than saving by itself, so there is only one save path.
+ *
+ * `writing-mode: vertical-rl` is what makes it sideways, and the choice is not
+ * cosmetic: it turns the LAYOUT BOX on its side, so the control is about 36px
+ * wide and as tall as its label. Rotating a horizontal box with `transform`
+ * instead leaves the box its original width - the element still reserves a
+ * ~150px-wide strip of the page, which is what put an earlier version of this
+ * button on top of the live preview panel while the CSS looked correct.
+ *
+ * The tick icon is dropped here and kept only for the mobile bar below: a
+ * dashicons glyph inside a vertical-rl flow is laid on its side with the text,
+ * and a sideways tick reads as a stray mark rather than as a tick.
+ *
+ * NOTHING HERE PAINTS THE CONTROL. It carries core's own `button
+ * button-primary` classes and WordPress supplies the background, border, text
+ * colour, hover, focus ring and disabled state. That is not tidiness: every
+ * user picks an Admin Colour Scheme under Users > Profile and each one
+ * repaints .wp-core-ui .button-primary, so a hex here matches the default
+ * scheme and no other. Measured on 2026-08-30 under Modern, with the old
+ * hardcoded #2271b1 still in place: the real Save button rendered
+ * rgb(56,88,233) and this tab rgb(34,113,177), on the same screen, one
+ * pretending to be the other. Add a colour here and it will be wrong again on
+ * seven of the eight schemes.
+ *
+ * The selector carries .wp-core-ui so these layout rules tie with core's own
+ * .wp-core-ui .button on specificity and win on order, since this stylesheet
+ * is enqueued after the admin's. Layout is all they may set.
+ */
+.wp-core-ui .hpva-settings-save {
+	position: fixed;
+	top: 50%;
+
+	/*
+	 * Physical `right`, not `inset-inline-end`, and that is a consequence of
+	 * the vertical writing mode rather than an oversight. A logical inset
+	 * resolves against the ELEMENT'S OWN writing mode, so on a vertical-rl
+	 * box the inline axis is the vertical one: `inset-inline-end: 0` set a
+	 * vertical offset, left nothing horizontal, and pinned the tab to the
+	 * LEFT edge of the screen. Measured on 2026-08-30, at 1440px.
+	 */
+	right: 0;
+	z-index: 100;
+	display: block;
+
+	/*
+	 * The padding is given in the rotated box's own terms. Core's button
+	 * padding is horizontal-first, and on a vertical-rl box those axes swap,
+	 * so core's own values would pad the wrong edges: 14px is the space above
+	 * and below the sideways label, 10px the space either side of it.
+	 * Measured at 1440px rather than reasoned about.
+	 */
+	writing-mode: vertical-rl;
+	height: auto;
+	padding: 14px 10px;
+	transform: translateY(-50%);
+
+	/* Rounded on the side that is not against the edge of the screen. */
+	border-inline-end: 0;
+	border-radius: 4px 0 0 4px;
+	font-size: 13px;
+	line-height: 1.4;
+	letter-spacing: 0.2px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.hpva-settings-save .dashicons {
+	display: none;
+}
+
+/*
+ * The one core declaration these two controls have to undo.
+ *
+ * wp-admin/css/buttons.css carries
+ * `.wp-core-ui .button .dashicons, .wp-core-ui .button-primary .dashicons,
+ * .wp-core-ui .button-secondary .dashicons { line-height: 1.9 }`, which beats
+ * the `line-height: 1` dashicons.css gives every icon. That 1.9 exists to drop
+ * a dashicon onto the text baseline of an ordinary horizontal button, and it
+ * is right there. It is wrong here, because both of these controls centre
+ * their glyph with flexbox instead: the glyph keeps its 20px box but is drawn
+ * inside a 38px line box (1.9 x 20px, measured), so it paints low and off
+ * centre while the BOX it sits in measures as perfectly centred - which is why
+ * this reads as an alignment bug with nothing visibly misaligned.
+ *
+ * Only line-height is restored, and only on our own two controls, so
+ * everything else core does to a button icon still applies. The selectors
+ * score the same as core's and this stylesheet is enqueued after the admin's,
+ * so they win on order without !important and without a magic offset.
+ */
+.wp-core-ui .hpva-settings-save .dashicons,
+.wp-core-ui .hpva-settings-top .dashicons {
+	line-height: 1;
+}
+
+/*
+ * The back-to-top button, above the Save tab's own corner so the two never
+ * overlap. Hidden by the script until the page has actually scrolled.
+ *
+ * Painted by core as well, through its plain `button` class - the secondary
+ * button's blue is the admin scheme's blue, and the old hardcoded #2271b1 and
+ * #c3c4c7 were the default scheme's alone. Only the round shape and the
+ * position belong here.
+ */
+.wp-core-ui .hpva-settings-top {
+	position: fixed;
+	inset-inline-end: 20px;
+	bottom: 20px;
+	z-index: 100;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border-radius: 50%;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.wp-core-ui .hpva-settings-top[hidden] {
+	display: none;
+}
+
+/*
+ * On a phone the sideways Save tab would sit over the fields, and the two
+ * round buttons would fight for the same corner, so Save becomes a bar along
+ * the bottom and the back-to-top button sits above it. 782px is where wp-admin
+ * itself switches to its touch layout.
+ */
+@media screen and (max-width: 782px) {
+
+	/*
+	 * The .wp-core-ui prefix is carried down here too. Without it these rules
+	 * score below the desktop ones above and the tab would stay sideways on a
+	 * phone: a media query grants no extra specificity.
+	 */
+	.wp-core-ui .hpva-settings-save {
+		top: auto;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		writing-mode: horizontal-tb;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		transform: none;
+
+		/* Square across the full width, and the border only along the top. */
+		border-inline-end: 0;
+		border-radius: 0;
+		padding: 12px;
+	}
+
+	/* The text runs left to right again down here, so the tick reads. */
+	.hpva-settings-save .dashicons {
+		display: inline-flex;
+		font-size: 16px;
+		width: 16px;
+		height: 16px;
+	}
+
+	.wp-core-ui .hpva-settings-top {
+		bottom: 68px;
+	}
+
+	/* Room for the bar, so it never covers the last field on the page. */
+	.hp-page .hp-form--table {
+		padding-bottom: 56px;
+	}
+}
+
+/* ==========================================================================
+ * THIS PLUGIN'S OWN SETTINGS RULES
+ * ========================================================================== */
+
+/* Section descriptions wrap at a readable measure on wide screens. */
+.hpva-settings > p {
+	max-width: 38em;
+}
+
+/* Core fixes tooltips at 173px wide (backend.min.css), which chops even a
+   short sentence into ribbons; give ours a little more room. */
+.hpva-settings .hp-tooltip__text {
+	width: 260px;
+}

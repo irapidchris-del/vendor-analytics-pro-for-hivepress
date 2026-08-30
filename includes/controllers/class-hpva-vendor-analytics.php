@@ -34,7 +34,7 @@ final class Hpva_Vendor_Analytics extends Controller {
 					'listing_analytics_page' => [
 						'base'     => 'listing_edit_page',
 						'path'     => '/analytics',
-						'title'    => esc_html__( 'Analytics', 'hivepress-vendor-analytics' ),
+						'title'    => esc_html__( 'Analytics', 'vendor-analytics-pro-for-hivepress' ),
 						'redirect' => [ $this, 'redirect_listing_analytics_page' ],
 						'action'   => [ $this, 'render_listing_analytics_page' ],
 					],
@@ -42,7 +42,7 @@ final class Hpva_Vendor_Analytics extends Controller {
 					'vendor_analytics_page'  => [
 						'base'     => 'user_account_page',
 						'path'     => '/analytics',
-						'title'    => esc_html__( 'Analytics', 'hivepress-vendor-analytics' ),
+						'title'    => esc_html__( 'Analytics', 'vendor-analytics-pro-for-hivepress' ),
 						'redirect' => [ $this, 'redirect_vendor_analytics_page' ],
 						'action'   => [ $this, 'render_vendor_analytics_page' ],
 					],
