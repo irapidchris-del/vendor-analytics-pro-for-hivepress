@@ -60,10 +60,16 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
   translation will no longer be found, and the extension will show its original
   English wording again. Nothing is lost: your translated wording is still in
   your translation file. To bring it back in Loco Translate, go to Loco
-  Translate > Plugins > Vendor Analytics Pro for HivePress, create the language
-  again, and choose to copy from your existing file when Loco offers it, or use
-  its "Sync" button. If you have not translated this extension, there is nothing
-  for you to do.
+  Translate > Plugins > Vendor Analytics Pro for HivePress and add the language
+  again, choosing to copy from your existing PO file and ticking "Copy target
+  translations" so your wording comes across with it. If your host lets you
+  rename files, the quicker route is to rename your existing
+  "hivepress-vendor-analytics-{locale}.po" and ".mo" so they start with
+  "vendor-analytics-pro-for-hivepress" instead, which brings the whole
+  translation back as it was. Loco's "Sync" button will not do this for you: it
+  refreshes the list of English strings from the template and does not copy
+  translations from another file. If you have not translated this extension,
+  there is nothing for you to do.
 
 = 1.9.2 =
 * Housekeeping only: nothing on your settings screen has moved, changed or
@@ -89,6 +95,8 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
   ticked, with nothing to save first.
 * Changed - shorter settings descriptions that keep to the main points, wrapped at a readable
   width on wide screens.
+* Changed - the small hover tooltips beside the field labels are wider, so a short sentence is no
+  longer chopped into ribbons.
 
 = 1.8.6 =
 * Fixed - search term clicks are now recorded even with page view tracking switched off. Clicks
