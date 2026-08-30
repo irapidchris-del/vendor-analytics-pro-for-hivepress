@@ -164,7 +164,63 @@
 			nav.appendChild( link );
 		} );
 
-		form.insertBefore( nav, headings[ 0 ] );
+		/*
+		 * A link for settings that arrive BEFORE the first heading.
+		 *
+		 * HivePress core registers its Geolocation section with no `title`
+		 * (hivepress-geolocation/includes/configs/settings.php, section
+		 * `restrictions`), so WordPress renders no <h2> and its fields open the
+		 * tab as an unheaded table. Without this they are the one group on the
+		 * page the nav cannot reach.
+		 *
+		 * Only a real settings table qualifies. Notifications opens its form
+		 * with its own live-preview panel, which is not a group of settings and
+		 * must never become a quick link - hence `table.form-table` rather than
+		 * "whatever comes first".
+		 *
+		 * The scroll offset is copied from the first heading rather than
+		 * restated here, so it keeps matching whatever each plugin's CSS sets
+		 * for the sticky nav and the admin bar.
+		 */
+		var leading = form.querySelector( ':scope > table.form-table' );
+
+		if ( leading &&
+			( leading.compareDocumentPosition( headings[ 0 ] ) & Node.DOCUMENT_POSITION_FOLLOWING ) ) {
+
+			if ( ! leading.id ) {
+				leading.id = CHROME.prefix + '-section-default';
+			}
+
+			leading.style.scrollMarginTop = window.getComputedStyle( headings[ 0 ] ).scrollMarginTop;
+
+			var leadingLink = document.createElement( 'a' );
+
+			leadingLink.href = '#' + leading.id;
+			leadingLink.textContent = chromeLabels().defaultSettings || 'Default Settings';
+
+			// After the "Jump to a section:" label, ahead of the real sections,
+			// because that is where these fields sit on the page.
+			nav.insertBefore( leadingLink, nav.children[ 1 ] || null );
+		}
+
+		/*
+		 * The TOP of the form, not merely above the first heading.
+		 *
+		 * Those are the same element on most tabs, so this looked correct
+		 * everywhere it was checked. They are not the same on the Geolocation
+		 * tab: HivePress core registers its own section there with no `title`
+		 * (hivepress-geolocation/includes/configs/settings.php, the
+		 * `restrictions` section), so WordPress renders no <h2> for it and its
+		 * fields sit in a leading table with nothing to anchor to. Inserting
+		 * before headings[0] therefore put the nav BELOW core's own settings,
+		 * which reads as a nav belonging only to this plugin's sections.
+		 *
+		 * Core's unheaded fields still get no link, because there is no heading
+		 * to name one after and inventing a visible heading core chose not to
+		 * have is not this plugin's call. With the nav at the top they sit
+		 * directly beneath it, so a link would scroll nowhere anyway.
+		 */
+		form.insertBefore( nav, form.firstElementChild );
 	}
 
 	/**
