@@ -317,8 +317,27 @@
 	max-width: 38em;
 }
 
-/* Core fixes tooltips at 173px wide (backend.min.css), which chops even a
+/* Core fixes tooltips at 173px wide (backend.min.css),
+which chops even a
    short sentence into ribbons; give ours a little more room. */
 .hpva-settings .hp-tooltip__text {
-	width: 260px;
+	width: 300px;
+	right: auto;
+	left: 26px;
+}
+
+/* Anchored to the RIGHT of the icon, with the arrow turned round.
+ * Core anchors it left (`right: 26px`) and sizes it to just clear the
+ * WordPress admin menu at its own 173px. Widening it therefore pushes it
+ * UNDER the menu: at 300px the left edge lands at 46px against a menu edge
+ * of 160px, so 114px of the bubble is hidden. Growing rightwards instead
+ * leaves 1000px+ of room on a settings screen. Measured 2026-08-30. */
+/* Core fixes tooltips at 173px wide (backend.min.css)::after,
+which chops even a
+   short sentence into ribbons; give ours a little more room. */
+.hpva-settings .hp-tooltip__text::after {
+	right: auto;
+	left: -8px;
+	border-left-color: transparent;
+	border-right-color: rgba(0, 0, 0, 0.75);
 }
