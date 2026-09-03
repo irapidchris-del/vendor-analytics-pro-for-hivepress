@@ -4,7 +4,7 @@ Tags: hivepress, analytics, statistics, marketplace, vendors
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.9.4
+Stable tag: 1.9.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,11 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 * The report button in the monthly email works for 90 days after the month it covers, then stops. Treat the link as private: anyone you forward it to can see that month's figures until it expires.
 
 == Changelog ==
+
+= 1.9.5 =
+* Fixed: updating two of these extensions one after the other could fail on the second with "up to date" until Check for updates was pressed again. WordPress rebuilds its update list after each update by asking wordpress.org first, and gives up on the whole list when that call is slow; the plugin now keeps its own update in the list regardless.
+* Changed: a release found more than an hour ago is refreshed in the background whenever the Plugins screen is opened, so the newest release is offered rather than an intermediate one.
+* New: a Check for updates bulk action on the Plugins screen, which checks every selected extension in one go, and the row that says Updating no longer shrinks on phones.
 
 = 1.9.4 =
 * Changed: on the settings tab the help icon now sits directly after each label, and its tooltip opens to the right at full width instead of being cut into a narrow strip to the left. The same placement is used across every extension in this family.
