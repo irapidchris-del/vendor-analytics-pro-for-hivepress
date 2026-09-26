@@ -90,13 +90,9 @@ class Hpva_Analytics_Summary extends Email {
 				'subject' => esc_html__( 'Your listings last month', 'vendor-analytics-pro-for-hivepress' ),
 
 				// This body is written as real HTML, unlike every core HivePress
-				// email, and both reasons are the same one: it is the first
-				// multi-line body on the platform. Core's are all a single
-				// sentence, so bare newlines never mattered there; the email is
-				// sent as text/html, and in an HTML client a newline is
-				// whitespace, so this list of figures collapsed into one run-on
-				// paragraph - the whole point of the email, read as prose.
-				// Found on staging, 2026-08-16.
+				// email, because it is multi-line: core's are single sentences, and
+				// in a text/html email a bare newline is whitespace, so the list of
+				// figures collapsed into one run-on paragraph.
 				//
 				// The report link is an anchor for the same family of reason:
 				// core's emails link to short readable page URLs that sit fine

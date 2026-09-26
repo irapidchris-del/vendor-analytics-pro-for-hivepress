@@ -51,7 +51,50 @@ final class Hpva_Vendor_Analytics extends Controller {
 			$args
 		);
 
+		// Give the analytics pages the template body classes core cannot work out.
+		add_filter( 'body_class', [ $this, 'add_template_classes' ] );
+
 		parent::__construct( $args );
+	}
+
+	/**
+	 * Adds the template body classes to the analytics pages.
+	 *
+	 * Core adds `hp-template` and one `hp-template--{template}` class per parent
+	 * template, but it finds the template by turning the ROUTE name into a class
+	 * name (hivepress/includes/components/class-template.php:217-228, core
+	 * 1.7.31): `vendor_analytics_page` becomes \HivePress\Templates\Vendor_Analytics_Page.
+	 * This plugin's templates carry its own prefix (Hpva_Vendor_Analytics_Page),
+	 * so core found nothing and both analytics pages had no template classes -
+	 * losing every theme and site style keyed on `hp-template--user-account-page`
+	 * or `hp-template--listing-manage-page`. Found by a sweep of every extension on
+	 * 26 Sept 2026 after the same bug was reported in Additional Gallery. The
+	 * routes keep their names, because links and other extensions use them.
+	 *
+	 * @param array $classes Body classes.
+	 * @return array
+	 */
+	public function add_template_classes( $classes ) {
+		$route = hivepress()->router->get_current_route_name();
+
+		if ( ! in_array( $route, [ 'vendor_analytics_page', 'listing_analytics_page' ], true ) ) {
+			return $classes;
+		}
+
+		$template = '\HivePress\Templates\Hpva_' . $route;
+
+		if ( ! class_exists( $template ) ) {
+			return $classes;
+		}
+
+		$classes[] = 'hp-template';
+
+		// Same slice as core: the first two parents are the base Template and Page classes.
+		foreach ( array_slice( hp\get_class_parents( $template ), 2 ) as $class ) {
+			$classes[] = 'hp-template--' . hp\sanitize_slug( hp\get_class_name( $class ) );
+		}
+
+		return array_values( array_unique( $classes ) );
 	}
 
 	/**

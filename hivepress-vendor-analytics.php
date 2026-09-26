@@ -3,7 +3,7 @@
  * Plugin Name: Vendor Analytics Pro for HivePress
  * Plugin URI: https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress
  * Description: A first-party analytics dashboard for HivePress vendors - views, phone/email click tracking, messages, bookings funnel, earnings, response-time trends, search terms and category benchmarks, stored as daily aggregates with no third-party services.
- * Version: 1.9.5
+ * Version: 1.9.7
  * Author: ChrisB @ HivePress Community
  * Author URI: https://community.hivepress.io/u/chrisb/summary
  * Requires Plugins: hivepress
@@ -43,7 +43,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'HPVA_VERSION', '1.9.5' );
+define( 'HPVA_VERSION', '1.9.7' );
 define( 'HPVA_DB_VERSION', '2' );
 define( 'HPVA_FILE', __FILE__ );
 
@@ -3179,7 +3179,7 @@ function hpva_section_on( $key ) {
  */
 function hpva_inject_statistics_summary( $template ) {
 	// merge_blocks takes a flat "block name => args" map and finds that block
-	// wherever it sits in the tree, so no nesting path is needed; Ihor has said
+	// wherever it sits in the tree, so no nesting path is needed; HivePress has said
 	// merge_trees will be deprecated in its favour. Adding a block means
 	// targeting an existing parent, here 'page_content' - an entry whose name
 	// matches nothing in the tree is silently discarded. The parent tree is
@@ -4387,6 +4387,11 @@ function hpva_css() {
 		. '.hpva-periods{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 1.25rem}'
 		. '.hpva-periods__item{padding:.35em .9em;border-radius:999px;background:#eaecf0;color:#4a5568;font-size:.85em;text-decoration:none}'
 		. '.hpva-periods__item--active{background:#4a5568;color:#fff}'
+		// The period pills are links, so HiveTheme's bare a:hover{color:#1db1fc} (0,1,1) turned
+		// their labels blue on hover, white-on-slate included. Restate
+		// each pill's resting colour for hover and focus; a plus one class is (0,2,1).
+		. 'a.hpva-periods__item:hover,a.hpva-periods__item:focus{color:#4a5568}'
+		. 'a.hpva-periods__item--active:hover,a.hpva-periods__item--active:focus{color:#fff}'
 		. '.hpva-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.75rem;margin:0 0 1.5rem}'
 		// .hpva-cards uses a fixed 150px track minimum rather than min-content,
 		// so a long unbroken translated word (German and Finnish compounds
@@ -4488,7 +4493,7 @@ function hpva_css() {
 		// The theme supplies the buttons' look; only the hover-colour trap
 		// needs restating: HiveTheme's bare a:hover outranks the themes'
 		// .button--*{color:#fff} on link-buttons, turning the label blue.
-		. 'a.hpva-export__btn:hover{color:#fff}'
+		. 'a.hpva-export__btn:hover,a.hpva-export__btn:focus{color:#fff}'
 		. '.hpva--listing{margin:0 0 2rem}'
 		. '</style>';
 }
@@ -4765,8 +4770,7 @@ function hpva_report_html( $vendor_id, $period, $listing_id = 0, $range = null )
 		// the same number of days, so 30-day June would be compared against
 		// 2 to 31 May and quietly drop 1 May, while 31-day August would line up
 		// with July exactly. That made the arrows right or wrong depending on
-		// the length of the month, which is the worst kind of wrong: correct
-		// often enough to look fine. Caught on staging, 2026-08-16.
+		// the length of the month: correct often enough to look fine.
 		list( $p_from, $p_to ) = hpva_month_range( gmdate( 'Y-m', strtotime( $from . ' UTC' ) - DAY_IN_SECONDS ) );
 
 		$prev       = hpva_totals_map( $vendor_id, $p_from, $p_to, $scope );
@@ -5667,15 +5671,11 @@ function hpva_release_notes_inline( $text ) {
  * Turns a GitHub release body into the HTML the "View version details" popup
  * expects.
  *
- * WordPress renders the `sections` payload as HTML, so escaping the Markdown
- * and running it through wpautop - which is what this did until 1.8.1 - showed
- * readers a literal "## Monthly summary email" and "**bold**" where every other
- * plugin's popup shows headings and bold text. Found on staging 2026-08-16.
- *
- * This handles the subset of Markdown our own release notes actually use:
- * headings, bullet lists, bold, inline code and links. Anything else degrades
- * to plain text, which is the right way for a changelog renderer to fail. A
- * full Markdown parser would be a dependency, and a large one, for a popup.
+ * WordPress renders the `sections` payload as HTML, so escaping the Markdown and running it
+ * through wpautop (as before 1.8.1) showed a literal "## Heading" and "**bold**". This handles
+ * the subset of Markdown our release notes use: headings, bullet lists, bold, inline code and
+ * links. Anything else degrades to plain text; a full Markdown parser would be a large
+ * dependency for a popup.
  *
  * @param string $notes Release body in Markdown.
  * @return string

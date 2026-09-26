@@ -342,12 +342,10 @@ which chops even a
 	border-right-color: rgba(0, 0, 0, 0.75);
 }
 
-/* Tooltip placement, house rule (Chris, 2026-09-02). The help icon sits directly after the label
- * text, not at the far end of the label cell where core's justify-content: space-between puts it,
- * and the bubble opens to the RIGHT at 300px. Core anchors the bubble to the left of the icon at
- * 173px (hivepress/assets/css/backend.min.css, .hp-tooltip__text), which puts it under the admin
- * menu whenever the icon is early in the row and turns two sentences into a tall ribbon. The same
- * block sits in every extension with a settings tab; fix it in one and sweep the rest. */
+/* Tooltip placement, shared by every extension with a settings tab (sweep the siblings).
+ * The help icon sits right after the label text and the bubble opens to the RIGHT at 300px.
+ * Core anchors it left of the icon at 173px (hivepress/assets/css/backend.min.css,
+ * .hp-tooltip__text), which puts it under the admin menu and makes a tall ribbon. */
 .hp-page .hp-form--table th > div {
 	justify-content: flex-start;
 	gap: 6px;

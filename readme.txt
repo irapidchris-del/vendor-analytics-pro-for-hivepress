@@ -4,7 +4,7 @@ Tags: hivepress, analytics, statistics, marketplace, vendors
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.9.5
+Stable tag: 1.9.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,12 @@ Data is stored as compact daily aggregates in two custom tables, with configurab
 * The report button in the monthly email works for 90 days after the month it covers, then stops. Treat the link as private: anyone you forward it to can see that month's figures until it expires.
 
 == Changelog ==
+
+= 1.9.7 =
+* Fixed: button labels no longer turn blue when you hover over them. The date range buttons at the top of the Analytics pages were affected.
+
+= 1.9.6 =
+* Fixed: the Analytics pages lost the styling of the pages around them (the account sidebar on the Vendor Analytics page, the Listing edit layout on a Listing's Analytics page), because HivePress could not tell which kind of page they were. They now carry the same page classes as the rest of the account area.
 
 = 1.9.5 =
 * Fixed: updating two of these extensions one after the other could fail on the second with "up to date" until Check for updates was pressed again. WordPress rebuilds its update list after each update by asking wordpress.org first, and gives up on the whole list when that call is slow; the plugin now keeps its own update in the list regardless.
