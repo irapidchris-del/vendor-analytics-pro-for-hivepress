@@ -18,7 +18,7 @@ update notice, a working "View version details" popup, and a one-click update.
 ## One-time setup
 
 - The repository must be **public** (the updater and the download link use
-  unauthenticated GitHub access — never embed a token).
+  unauthenticated GitHub access; never embed a token).
 - The first public build that contains the updater is the baseline: users
   install it once, and automatic updates take over from the next release.
 
@@ -26,17 +26,17 @@ update notice, a working "View version details" popup, and a one-click update.
 
 1. **Bump the version in all four places** (they must match, or `build.sh`
    refuses to build):
-   - `hivepress-vendor-analytics.php` header — `Version:`
-   - `hivepress-vendor-analytics.php` — `define( 'HPVA_VERSION', ... )`
-   - `readme.txt` — `Stable tag:`
-   - `readme.txt` — the top `== Changelog ==` entry
+   - `hivepress-vendor-analytics.php` header: `Version:`
+   - `hivepress-vendor-analytics.php`: `define( 'HPVA_VERSION', ... )`
+   - `readme.txt`: `Stable tag:`
+   - `readme.txt`: the top `== Changelog ==` entry
 2. Commit and merge to the default branch (`main`).
 
-   > ⚠️ **Push the source before you release — always.** The workflow also
+   > ⚠️ **Push the source before you release, always.** The workflow also
    > triggers on `release: published`, and it **rebuilds the zip from the repo
    > source** and re-uploads it with `--clobber`. If you create a release while
    > `main` is still on the previous version, the workflow overwrites whatever
-   > zip you attached with a freshly built one from the *stale* source — every
+   > zip you attached with a freshly built one from the *stale* source, every
    > updating site then gets old code under the new version number, which the
    > updater treats as up to date. The plugin folder in a WordPress install is
    > not a git clone, so a local check for `.github/` will wrongly report "no
@@ -45,15 +45,15 @@ update notice, a working "View version details" popup, and a one-click update.
 3. **Publish the release.** The tag must equal the header version (prefixed with
    `v`, e.g. `v1.5.1`). Two equivalent ways:
 
-   **a) From GitHub** — create a Release (tag `v1.5.1`), publish it, and the
+   **a) From GitHub**: create a Release (tag `v1.5.1`), publish it, and the
    `release.yml` workflow builds and attaches
    `vendor-analytics-pro-for-hivepress.zip` automatically.
 
-   **b) From the GitHub Actions tab** — run the **Release** workflow via
+   **b) From the GitHub Actions tab**: run the **Release** workflow via
    *Run workflow* with `tag = v1.5.1` (and optional notes). It creates the
    release, sets the notes, and attaches the asset.
 
-## Publishing from a Claude session
+## Publishing from an automated session
 
 `gh` and the raw releases REST API are not available inside sessions, so drive
 the workflow through the GitHub MCP instead:
@@ -74,7 +74,7 @@ redirect always points at the newest build:
 https://github.com/irapidchris-del/vendor-analytics-pro-for-hivepress/releases/latest/download/vendor-analytics-pro-for-hivepress.zip
 ```
 
-This URL ends in `.zip`, downloads instantly, and never changes — post it once on
+This URL ends in `.zip`, downloads instantly, and never changes. Post it once on
 the HivePress community forum.
 
 ## Notes
